@@ -26,8 +26,9 @@
 #' @param nboot a positive integer specifying the number of bootstrap replications when assessing sampling uncertainty and constructing confidence intervals. Bootstrap replications are generally time consuming. Set \code{nboot = 0} to skip the bootstrap procedures. Default is \code{nboot = 10}. If more accurate results are required, set \code{nboot = 100} (or \code{nboot = 200}).
 #' @param conf a positive number < 1 specifying the level of confidence interval. Default is 0.95.
 #' @param PDtree (required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format for all observed species in the pooled assemblage. 
-#' @param PDreftime (argument only for \code{diversity = "PD"}), a numerical value specifying reference time for PD. Default is \code{PDreftime = NULL} (i.e., the age of the root of \code{PDtree}).  
-#' @param PDtype (argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "PD"} (effective total branch length) or \code{PDtype = "meanPD"} (effective number of equally divergent lineages). Default is \code{PDtype = "meanPD"}, where \code{meanPD = PD/tree depth}.
+#' @param PDreftime (argument only for \code{diversity = "PD"}), a numerical value specifying the reference time for PD. For \code{PDtype = "AUC"}, \code{PDreftime} specifies the upper limit of phylogenetic tree depth used for integration. Default is \code{PDreftime = NULL}, in which case the age of the root of \code{PDtree} is used.
+#' @param PDtype (argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "PD"} for effective total branch length, \code{PDtype = "meanPD"} for effective number of equally divergent lineages, or \code{PDtype = "AUC"} for an integrated mean phylogenetic diversity over phylogenetic tree depth. Default is \code{PDtype = "AUC"}.
+#' @param PDcut_number (argument only for \code{diversity = "PD"} and \code{PDtype = "AUC"}), a positive integer larger than one specifying the number of equally spaced phylogenetic tree-depth values used to numerically approximate the AUC. Default is \code{PDcut_number = 30}. A larger value can be used to obtain a more accurate AUC approximation.
 #' @param FDdistM (required argument for \code{diversity = "FD"}), a species pairwise distance matrix for all species in the pooled dataset. 
 #' @param FDtype (argument only for \code{diversity = "FD"}), select FD type: \code{FDtype = "tau_value"} for FD under a specified threshold value, or \code{FDtype = "AUC"} (area under the curve of tau-profile) for an overall FD which integrates all threshold values between zero and one. Default is \code{FDtype = "AUC"}.  
 #' @param FDtau (argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}), a numerical value between 0 and
@@ -69,7 +70,7 @@
 #'  \item{Method}{Rarefaction, Observed, or Extrapolation, depending on whether the target coverage is less than, equal to, or greater than the coverage of the reference sample.} 
 #'  \item{s.e.}{standard error of standardized estimate.}
 #'  \item{LCL, UCL}{the bootstrap lower and upper confidence limits for the diversity/dissimilarity with a default significance level of 0.95.}
-#'  \item{Diversity}{\code{'TD'} = 'Taxonomic diversity', \code{'PD'} = 'Phylogenetic diversity', \code{'meanPD'} = 'Mean phylogenetic diversity', \code{'FD_tau'} = 'Functional diversity (given tau)', \code{'FD_AUC'} = 'Functional diversity (AUC)'}
+#'  \item{Diversity}{\code{'TD'} = 'Taxonomic diversity', \code{'PD'} = 'Phylogenetic diversity', \code{'meanPD'} = 'Mean phylogenetic diversity', \code{'PD_AUC'} = 'Phylogenetic diversity (AUC)', \code{'FD_tau'} = 'Functional diversity (given tau)', \code{'FD_AUC'} = 'Functional diversity (AUC)'}
 #'  \item{Reftime}{the reference time for PD.}
 #'  \item{Tau}{the threshold of functional distinctiveness between any two species for FD (under \code{FDtype = "tau_value"}).}
 #'  Similar output is obtained for \code{base = "size"}.\cr
@@ -157,7 +158,7 @@
 #' data(Brazil_tree)
 #' output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "coverage", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'meanPD')
+#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC',  PDcut_number = 30) 
 #' output_PDc_abun
 #' 
 #' 
@@ -166,7 +167,7 @@
 #' data(Brazil_tree)
 #' output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "size", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'meanPD')
+#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC',  PDcut_number = 30) 
 #' output_PDs_abun
 #' 
 #' 
@@ -199,7 +200,7 @@
 #' @export
 iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abundance', 
                        base = 'coverage', level = NULL, nboot = 10, conf = 0.95, 
-                       PDtree = NULL, PDreftime = NULL, PDtype = 'meanPD',
+                       PDtree = NULL, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30,
                        FDdistM = NULL, FDtype = 'AUC', FDtau = NULL, FDcut_number = 30,
                        by_pair = FALSE) {
   
@@ -232,8 +233,10 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
   if (length(PDreftime) > 1)
     stop("PDreftime can only accept a value instead of a vector.", call. = FALSE)
   
-  if(is.na(pmatch(PDtype, c("PD", "meanPD"))))
-    stop("Incorrect type of phylogenetic diversity type, please use either 'PD' or 'meanPD'.", call. = FALSE)
+  if(is.na(pmatch(PDtype, c("PD", "meanPD", "AUC"))))
+    stop("Incorrect phylogenetic diversity type. Please use 'PD', 'meanPD', or 'AUC'.", call. = FALSE)
+  
+  if (PDtype == "AUC") {if (!is.numeric(PDcut_number) || length(PDcut_number) != 1 || is.na(PDcut_number) || PDcut_number < 2 || PDcut_number %% 1 != 0) {stop("Invalid PDcut_number. PDcut_number should be a single integer larger than one.",call. = FALSE)}}
   
   if (FDtype == "tau_values") stop('Please try FDtype = "tau_value".')  
   if(is.na(pmatch(FDtype, c("AUC", "tau_value"))))
@@ -628,9 +631,39 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
     # H_max = get.rooted.tree.height(mytree)
     H_max = max(ape::node.depth.edgelength(mytree))
     
-    if(is.null(PDreftime)) { reft = H_max
-    } else if (PDreftime <= 0) { stop("Reference time must be greater than 0. Use NULL to set it to pooled tree height.", call. = FALSE)
-    } else { reft = PDreftime }
+    
+    if (PDtype %in% c("PD", "meanPD")) {
+      if (is.null(PDreftime)) {
+        
+        reft = H_max
+        
+      } else if (PDreftime <= 0) {
+        
+        stop("Reference time must be greater than 0. Use NULL to set it to pooled tree height.",call. = FALSE)
+        
+      } else {
+        
+        reft = PDreftime
+  
+      }
+    }
+    
+    if (PDtype == "AUC") {
+      
+      PD_AUC_max = if (is.null(PDreftime)) {
+        H_max
+      } else {
+        PDreftime
+      }
+      
+      if (PD_AUC_max <= 0) {stop("The maximum reference time for PD-AUC must be greater than 0.", call. = FALSE)}
+      
+      PDcut = seq(from = 1e-08,to = PD_AUC_max,length.out = PDcut_number)
+      
+      PDwidth = diff(PDcut)
+      
+      reft = PD_AUC_max
+    }
     
   }
     
@@ -873,7 +906,144 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
     
     if (diversity == 'PD') {
       
-      if (datatype == 'abundance') {
+      PD_by_time = function(data, tree, reft_i, datatype, m_gamma, m_alpha) {
+        
+        if (datatype == "abundance") {
+          
+          data_gamma_i = rowSums(data)
+          data_gamma_i = data_gamma_i[data_gamma_i > 0]
+          
+          # Gamma
+          aL_gamma = iNEXT.3D:::phyBranchAL_Abu(phylo = tree, data = data_gamma_i, rootExtend = TRUE, refT = reft_i)
+          
+          aL_gamma$treeNabu$branch.length = aL_gamma$BLbyT[, 1]
+          
+          aL_table_gamma = aL_gamma$treeNabu %>%
+            dplyr::select(branch.abun, branch.length, tgroup)
+          
+          gamma = iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun,Lis = as.matrix(aL_table_gamma$branch.length),
+                                       m = m_gamma, q = q, nt = n, reft = reft_i, cal = "PD") %>% t() %>% as.vector()
+          
+          # Alpha
+          aL_table_alpha = NULL
+          
+          for (k in seq_len(N)) {
+            
+            x = data[data[, k] > 0, k]
+            names(x) = rownames(data)[data[, k] > 0]
+            
+            aL_alpha = iNEXT.3D:::phyBranchAL_Abu(phylo = tree, data = x, rootExtend = TRUE, refT = reft_i)
+            
+            aL_alpha$treeNabu$branch.length = aL_alpha$BLbyT[, 1]
+            
+            aL_table_k = aL_alpha$treeNabu %>%
+              dplyr::select(branch.abun, branch.length, tgroup)
+            
+            aL_table_alpha = rbind(aL_table_alpha, aL_table_k)
+          }
+          
+          alpha = (iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length),
+                                        m = m_alpha, q = q, nt = n, reft = reft_i, cal = "PD") / N ) %>% t() %>% as.vector()
+        }
+        
+        
+        if (datatype == "incidence_raw") {
+          
+          gamma_raw = Reduce("+", data)
+          gamma_raw[gamma_raw > 1] = 1
+          
+          # Gamma
+          aL_gamma = iNEXT.3D:::phyBranchAL_Inc(phylo = tree,data = as.matrix(gamma_raw),datatype = "incidence_raw",rootExtend = TRUE,refT = reft_i)
+          
+          aL_gamma$treeNabu$branch.length = aL_gamma$BLbyT[, 1]
+          
+          aL_table_gamma = aL_gamma$treeNabu %>%
+            dplyr::select(branch.abun, branch.length, tgroup)
+          
+          gamma = iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length),
+                                       m = m_gamma, q = q, nt = n, reft = reft_i, cal = "PD") %>% t() %>% as.vector()
+          
+          # Alpha
+          aL_table_alpha = NULL
+          
+          for (k in seq_len(N)) {
+            
+            x = data[[k]]
+            
+            aL_alpha = iNEXT.3D:::phyBranchAL_Inc(phylo = tree, data = x, datatype = "incidence_raw", rootExtend = TRUE, refT = reft_i)
+            
+            aL_alpha$treeNabu$branch.length = aL_alpha$BLbyT[, 1]
+            
+            aL_table_k = aL_alpha$treeNabu %>%
+              dplyr::select(branch.abun, branch.length, tgroup)
+            
+            aL_table_alpha = rbind(aL_table_alpha,aL_table_k)
+          }
+          
+          alpha = (iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length),
+                                        m = m_alpha, q = q, nt = n, reft = reft_i, cal = "PD") / N ) %>% t() %>% as.vector()
+        }
+        
+        gamma = gamma / reft_i
+        alpha = alpha / reft_i
+        
+        return(data.frame(gamma, alpha))
+      }
+      
+      PD_AUC_by_data = function(data, tree, datatype, m_gamma, m_alpha) {
+        
+        gamma_alpha_over_time = lapply(PDcut,
+                                       function(reft_i) {PD_by_time(data = data, tree = tree, reft_i = reft_i, datatype = datatype,
+                                                                    m_gamma = m_gamma, m_alpha = m_alpha)})
+        
+        gamma_over_time = sapply(gamma_alpha_over_time,function(x) x$gamma)
+        
+        alpha_over_time = sapply(gamma_alpha_over_time,function(x) x$alpha)
+        
+        if (is.vector(gamma_over_time)) {gamma_over_time = matrix(gamma_over_time,nrow = 1)}
+        
+        if (is.vector(alpha_over_time)) {alpha_over_time = matrix(alpha_over_time,nrow = 1)}
+        
+        beta_over_time = gamma_over_time / alpha_over_time
+        
+        gamma_left = gamma_over_time[,-ncol(gamma_over_time),drop = FALSE]
+        
+        gamma_right = gamma_over_time[,-1,drop = FALSE]
+        
+        alpha_left = alpha_over_time[,-ncol(alpha_over_time),drop = FALSE]
+        
+        alpha_right = alpha_over_time[,-1,drop = FALSE]
+        
+        beta_left = beta_over_time[, -ncol(beta_over_time),drop = FALSE]
+        
+        beta_right = beta_over_time[, -1,drop = FALSE]
+        
+        width_matrix = matrix(PDwidth,nrow = nrow(gamma_over_time),ncol = length(PDwidth),byrow = TRUE)
+        
+        gamma = rowSums(((gamma_left + gamma_right) / 2) * width_matrix) / sum(PDwidth)
+        
+        alpha = rowSums(((alpha_left + alpha_right) / 2) * width_matrix) / sum(PDwidth)
+        
+        beta = rowSums(((beta_left + beta_right) / 2) * width_matrix) / sum(PDwidth)
+        
+        return(list(gamma = gamma, alpha = alpha, beta = beta))
+      }
+      
+      
+      if(PDtype == "AUC"){
+        
+        PD_auc = PD_AUC_by_data(data = data, tree = PDtree, datatype = datatype, m_gamma = m_gamma, m_alpha = m_alpha)
+        
+        gamma = data.frame(Order.q = rep(q, each = length(level)), Estimate = PD_auc$gamma,
+                           SC = rep(level, times = length(q)), Size = rep(m_gamma, times = length(q)))
+        
+        alpha = data.frame(Order.q = rep(q, each = length(level)), Estimate = PD_auc$alpha,
+                           SC = rep(level, times = length(q)), Size = rep(m_alpha, times = length(q)))
+        
+
+      }else{
+        
+              if (datatype == 'abundance') {
         
         aL = iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, data = data_gamma, rootExtend = T, refT = reft)
         aL$treeNabu$branch.length = aL$BLbyT[,1]
@@ -908,7 +1078,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
         
       }
       
-      if (datatype == 'incidence_raw') {
+              if (datatype == 'incidence_raw') {
         
         aL = iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, data = as.matrix(data_gamma_raw), datatype = "incidence_raw", refT = reft, rootExtend = T)
         aL$treeNabu$branch.length = aL$BLbyT[,1]
@@ -937,6 +1107,10 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
         
         
       }
+        
+      }
+      
+   
       
       gamma = (gamma %>% 
                  mutate(Method = ifelse(SC >= ref_gamma, ifelse(SC == ref_gamma, 'Observed', 'Extrapolation'), 'Rarefaction')))[,c(2,1,5,3,4)] %>% 
@@ -957,7 +1131,18 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
       }
       
       beta = alpha
-      beta$Estimate = gamma$Estimate/alpha$Estimate
+      
+      if (PDtype == "AUC") {
+        
+        beta$Estimate = PD_auc$beta
+        
+      } else {
+        
+        beta$Estimate = gamma$Estimate / alpha$Estimate
+        
+      }
+      
+      
       # beta[beta == "Observed"] = "Observed_SC(n, alpha)"
       # beta = beta %>% rbind(., cbind(gamma %>% filter(Method == "Observed") %>% select(Estimate) / alpha %>% filter(Method == "Observed") %>% select(Estimate), 
       #                                Order.q = q, Method = "Observed", SC = NA, Size = beta[beta$Method == "Observed_SC(n, alpha)", 'Size']))
@@ -982,277 +1167,331 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
         # start = Sys.time()
         se = future_lapply(1:nboot, function(i){
           
-          if (datatype == 'abundance') {
-            
+          
+          if (datatype == "abundance") {
             tree_bt = PDtree
-            
-            bootstrap_population = bootstrap_population_multiple_assemblage(data, data_gamma, 'abundance')
+            bootstrap_population = iNEXT.beta3D:::bootstrap_population_multiple_assemblage(data, 
+                                                                                           data_gamma, "abundance")
             p_bt = bootstrap_population
-            unseen_p = p_bt[-(1:nrow(data)),] %>% matrix(ncol = ncol(data))
-            
-            if ( nrow(p_bt) > nrow(data) & sum(unseen_p) > 0 ){
-              
-              unseen = unseen_p[which(rowSums(unseen_p) > 0),]
+            unseen_p = p_bt[-(1:nrow(data)), ] %>% matrix(ncol = ncol(data))
+            if (nrow(p_bt) > nrow(data) & sum(unseen_p) > 
+                0) {
+              unseen = unseen_p[which(rowSums(unseen_p) > 
+                                        0), ]
               unseen = matrix(unseen, ncol = ncol(unseen_p))
-              p_bt = rbind(p_bt[(1:nrow(data)),], unseen)
-              unseen_name = sapply(1:nrow(unseen), function(i) paste0('unseen_', i))
+              p_bt = rbind(p_bt[(1:nrow(data)), ], unseen)
+              unseen_name = sapply(1:nrow(unseen), function(i) paste0("unseen_", 
+                                                                      i))
               rownames(p_bt) = c(rownames(data), unseen_name)
-              
-              bootstrap_sample = sapply(1:ncol(data), function(k) rmultinom(n = 1, size = sum(data[,k]), prob = p_bt[,k]))
+              bootstrap_sample = sapply(1:ncol(data), 
+                                        function(k) rmultinom(n = 1, size = sum(data[, 
+                                                                                     k]), prob = p_bt[, k]))
               x_bt = bootstrap_sample
-              
               rownames(x_bt) = rownames(p_bt)
-              
-              if ( sum(x_bt[-(1:nrow(data)),])>0 ){
-                
-                g0_hat = apply(data, 2, function(x){
-                  
+              if (sum(x_bt[-(1:nrow(data)), ]) > 0) {
+                g0_hat = apply(data, 2, function(x) {
                   n = sum(x)
                   f1 = sum(x == 1)
                   f2 = sum(x == 2)
-                  
-                  aL = iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, data = x, rootExtend = T, refT = reft)
-                  
-                  aL$treeNabu$branch.length = aL$BLbyT[,1]
-                  aL = aL$treeNabu %>% select(branch.abun,branch.length)
-                  g1 = aL$branch.length[aL$branch.abun == 1] %>% sum
-                  g2 = aL$branch.length[aL$branch.abun == 2] %>% sum
-                  g0_hat = ifelse( g2 > ((g1*f2)/(2*f1)) , ((n-1)/n)*(g1^2/(2*g2)) , ((n-1)/n)*(g1*(f1-1)/(2*(f2+1))) )
-                  if(is.na(g0_hat)) {g0_hat <- 0 }
-                  g0_hat
-                  
-                })
-                
-                te = (x_bt[1:nrow(data),]*(data == 0))>0
-                used_length = sapply(1:ncol(data), function(i) { 
-                  
-                  if (sum(te[,i]) == 0) return(0) else {
-                    
-                    iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, data = x_bt[1:nrow(data),i], rootExtend = T, refT = reft)$treeNabu %>%
-                      subset(label %in% names(which(te[,i] == TRUE))) %>% select(branch.length) %>% sum
-                    
+                  aL = iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, 
+                                                  data = x, rootExtend = T, refT = reft)
+                  aL$treeNabu$branch.length = aL$BLbyT[, 
+                                                       1]
+                  aL = aL$treeNabu %>% select(branch.abun, 
+                                              branch.length)
+                  g1 = aL$branch.length[aL$branch.abun == 
+                                          1] %>% sum
+                  g2 = aL$branch.length[aL$branch.abun == 
+                                          2] %>% sum
+                  g0_hat = ifelse(g2 > ((g1 * f2)/(2 * 
+                                                     f1)), ((n - 1)/n) * (g1^2/(2 * g2)), 
+                                  ((n - 1)/n) * (g1 * (f1 - 1)/(2 * 
+                                                                  (f2 + 1))))
+                  if (is.na(g0_hat)) {
+                    g0_hat <- 0
                   }
-                  
+                  g0_hat
                 })
-                
+                te = (x_bt[1:nrow(data), ] * (data == 
+                                                0)) > 0
+                used_length = sapply(1:ncol(data), function(i) {
+                  if (sum(te[, i]) == 0) 
+                    return(0)
+                  else {
+                    iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, 
+                                               data = x_bt[1:nrow(data), i], 
+                                               rootExtend = T, refT = reft)$treeNabu %>% 
+                      subset(label %in% names(which(te[, 
+                                                       i] == TRUE))) %>% select(branch.length) %>% 
+                      sum
+                  }
+                })
                 g0_hat = g0_hat - used_length
                 g0_hat[g0_hat < 0] = 0
-                
-                unseen_sample = x_bt[-(1:nrow(data)),]
-                if (is.vector(unseen_sample)) unseen_sample = matrix(unseen_sample, ncol = ncol(x_bt))
-                
-                L0_hat = sapply(1:length(g0_hat), function(i) if(sum(unseen_sample[,i] > 0) > 0) (g0_hat[i] / nrow(unseen)) else 0 )
-                
-                L0_hat = rowSums((matrix(L0_hat, nrow(unseen_sample), ncol(unseen_sample), byrow = T) * unseen_sample)) / rowSums(unseen_sample)
-                L0_hat[which(rowSums(unseen_sample) == 0)] = 0
-                
-                for (i in 1:length(L0_hat)){
-                  
-                  tip = list(edge = matrix(c(2,1),1,2),
-                             tip.label = unseen_name[i],
-                             edge.length = L0_hat[i],
-                             Nnode = 1)
+                unseen_sample = x_bt[-(1:nrow(data)), 
+                ]
+                if (is.vector(unseen_sample)) 
+                  unseen_sample = matrix(unseen_sample, 
+                                         ncol = ncol(x_bt))
+                L0_hat = sapply(1:length(g0_hat), function(i) if (sum(unseen_sample[, 
+                                                                                    i] > 0) > 0) 
+                  (g0_hat[i]/nrow(unseen))
+                  else 0)
+                L0_hat = rowSums((matrix(L0_hat, nrow(unseen_sample), 
+                                         ncol(unseen_sample), byrow = T) * 
+                                    unseen_sample))/rowSums(unseen_sample)
+                L0_hat[which(rowSums(unseen_sample) == 
+                               0)] = 0
+                for (i in 1:length(L0_hat)) {
+                  tip = list(edge = matrix(c(2, 1), 
+                                           1, 2), tip.label = unseen_name[i], 
+                             edge.length = L0_hat[i], Nnode = 1)
                   class(tip) = "phylo"
-                  
                   tree_bt = tree_bt + tip
-                  
                 }
-                
-              } else {
-                
-                x_bt = x_bt[1:nrow(data),]
-                p_bt = p_bt[1:nrow(data),]
-                
+              }
+              else {
+                x_bt = x_bt[1:nrow(data), ]
+                p_bt = p_bt[1:nrow(data), ]
+              }
+            }
+            else {
+              p_bt = p_bt[1:nrow(data), ]
+              x_bt = sapply(1:ncol(data), function(k) rmultinom(n = 1, 
+                                                                size = sum(data[, k]), prob = p_bt[, 
+                                                                                                   k]))
+              rownames(x_bt) = rownames(data)
+            }
+            bootstrap_data_gamma = rowSums(x_bt)
+            bootstrap_data_gamma = bootstrap_data_gamma[bootstrap_data_gamma > 
+                                                          0]
+            bootstrap_data_alpha = as.matrix(x_bt) %>% 
+              as.vector
+            bootstrap_data_alpha = bootstrap_data_alpha[bootstrap_data_alpha > 
+                                                          0]
+            m_gamma = sapply(level, function(i) iNEXT.beta3D:::coverage_to_size(bootstrap_data_gamma, 
+                                                                                i, datatype = "abundance"))
+            m_alpha = sapply(level, function(i) iNEXT.beta3D:::coverage_to_size(bootstrap_data_alpha, 
+                                                                                i, datatype = "abundance"))
+            
+            
+            if (PDtype == "AUC") {
+              
+              PD_auc_bt = PD_AUC_by_data(data = x_bt, tree = tree_bt, datatype = "abundance",
+                                         m_gamma = m_gamma, m_alpha = m_alpha)
+              
+              gamma = PD_auc_bt$gamma
+              alpha = PD_auc_bt$alpha
+              beta  = PD_auc_bt$beta
+              
+            }else{
+              
+              
+              aL = iNEXT.3D:::phyBranchAL_Abu(phylo = tree_bt, 
+                                              data = bootstrap_data_gamma, rootExtend = T, 
+                                              refT = reft)
+              aL$treeNabu$branch.length = aL$BLbyT[, 1]
+              aL_table_gamma = aL$treeNabu %>% select(branch.abun, 
+                                                      branch.length, tgroup)
+              gamma = as.vector(iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, 
+                                                     Lis = as.matrix(aL_table_gamma$branch.length), 
+                                                     m = m_gamma, q = q, nt = n, reft = reft, 
+                                                     cal = "PD") %>% t)
+              aL_table_alpha = c()
+              
+              for (i in 1:N) {
+                x = x_bt[, i]
+                names(x) = rownames(p_bt)
+                x = x[x_bt[, i] > 0]
+                aL = iNEXT.3D:::phyBranchAL_Abu(phylo = tree_bt, 
+                                                data = x, rootExtend = T, refT = reft)
+                aL$treeNabu$branch.length = aL$BLbyT[, 
+                                                     1]
+                aL_table = aL$treeNabu %>% select(branch.abun, 
+                                                  branch.length, tgroup)
+                aL_table_alpha = rbind(aL_table_alpha, 
+                                       aL_table)
               }
               
-            } else {
-              
-              p_bt = p_bt[1:nrow(data),]
-              x_bt = sapply(1:ncol(data), function(k) rmultinom(n = 1, size = sum(data[,k]), prob = p_bt[,k]))
-              rownames(x_bt) = rownames(data)
-              
-            }
-            
-            bootstrap_data_gamma = rowSums(x_bt)
-            bootstrap_data_gamma = bootstrap_data_gamma[bootstrap_data_gamma>0]
-            bootstrap_data_alpha = as.matrix(x_bt) %>% as.vector
-            bootstrap_data_alpha = bootstrap_data_alpha[bootstrap_data_alpha>0]
-            
-            m_gamma = sapply(level, function(i) coverage_to_size(bootstrap_data_gamma, i, datatype='abundance'))
-            m_alpha = sapply(level, function(i) coverage_to_size(bootstrap_data_alpha, i, datatype='abundance'))
-            
-            aL = iNEXT.3D:::phyBranchAL_Abu(phylo = tree_bt, data = bootstrap_data_gamma, rootExtend = T, refT = reft)
-            aL$treeNabu$branch.length = aL$BLbyT[,1]
-            aL_table_gamma = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
-            
-            gamma = as.vector(iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length), m = m_gamma, q = q, nt = n, reft = reft, cal = "PD") %>% t)
-            
-            
-            aL_table_alpha = c()
-            
-            for (i in 1:N){
-              
-              # x = x_bt[x_bt[,i]>0,i]
-              # names(x) = rownames(p_bt)[x_bt[,i]>0]
-              
-              x = x_bt[,i]
-              names(x) = rownames(p_bt)
-              x = x[x_bt[,i]>0]
-              
-              aL = iNEXT.3D:::phyBranchAL_Abu(phylo = tree_bt, data = x, rootExtend = T, refT = reft)
-              aL$treeNabu$branch.length = aL$BLbyT[,1]
-              aL_table = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
-              
-              aL_table_alpha = rbind(aL_table_alpha, aL_table)
+              alpha = as.vector((iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, 
+                                                      Lis = as.matrix(aL_table_alpha$branch.length), 
+                                                      m = m_alpha, q = q, nt = n, reft = reft, 
+                                                      cal = "PD")/N) %>% t)
               
             }
             
-            alpha = as.vector((iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), m = m_alpha, q = q, nt = n, reft = reft, cal = "PD")/N) %>% t)
             
-            # beta_obs = (iNEXT.3D:::PD.Tprofile(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length), q = q, nt = n, cal = "PD") / 
-            #               (iNEXT.3D:::PD.Tprofile(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), q = q, nt = n, cal = "PD") / N)) %>% unlist()
           }
-          
-          if (datatype == 'incidence_raw') {
-            
+          if (datatype == "incidence_raw") {
             tree_bt = PDtree
-            
-            bootstrap_population = bootstrap_population_multiple_assemblage(data_2D, data_gamma_freq, 'incidence')
+            bootstrap_population = iNEXT.beta3D:::bootstrap_population_multiple_assemblage(data_2D, 
+                                                                                           data_gamma_freq, "incidence")
             p_bt = bootstrap_population
-            unseen_p = p_bt[-(1:nrow(data[[1]])),] %>% matrix(ncol=N)
-            
-            if ( nrow(p_bt) > nrow(data[[1]]) & sum(unseen_p)>0 ){
-              
-              unseen = unseen_p[which(rowSums(unseen_p)>0),]
+            unseen_p = p_bt[-(1:nrow(data[[1]])), ] %>% 
+              matrix(ncol = N)
+            if (nrow(p_bt) > nrow(data[[1]]) & sum(unseen_p) > 
+                0) {
+              unseen = unseen_p[which(rowSums(unseen_p) > 
+                                        0), ]
               unseen = matrix(unseen, ncol = ncol(unseen_p))
-              p_bt = rbind(p_bt[(1:nrow(data[[1]])),], unseen)
-              unseen_name = sapply(1:nrow(unseen), function(i) paste0('unseen_', i))
-              rownames(p_bt) = c(rownames(data[[1]]), unseen_name)
-              
-              raw = lapply(1:ncol(p_bt), function(j){
-                
-                lapply(1:nrow(p_bt), function(i) rbinom(n=n, size=1, prob=p_bt[i,j])) %>% do.call(rbind,.)
-                
+              p_bt = rbind(p_bt[(1:nrow(data[[1]])), 
+              ], unseen)
+              unseen_name = sapply(1:nrow(unseen), function(i) paste0("unseen_", 
+                                                                      i))
+              rownames(p_bt) = c(rownames(data[[1]]), 
+                                 unseen_name)
+              raw = lapply(1:ncol(p_bt), function(j) {
+                lapply(1:nrow(p_bt), function(i) rbinom(n = n, 
+                                                        size = 1, prob = p_bt[i, j])) %>% 
+                  do.call(rbind, .)
               })
-              
               for (i in 1:length(raw)) rownames(raw[[i]]) = rownames(p_bt)
-              
-              if ( lapply(1:length(raw), function(i) raw[[i]][-(1:nrow(data[[1]])),]) %>% do.call(sum,.)>0 ){
-                
-                R0_hat = sapply(data, function(x){
-                  
+              if (lapply(1:length(raw), function(i) raw[[i]][-(1:nrow(data[[1]])), 
+              ]) %>% do.call(sum, .) > 0) {
+                R0_hat = sapply(data, function(x) {
                   nT = ncol(x)
-                  Q1 = sum(rowSums(x)==1)
-                  Q2 = sum(rowSums(x)==2)
-                  
-                  aL = iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, data = x, datatype = "incidence_raw", rootExtend = T, refT = reft)
-                  
-                  aL$treeNabu$branch.length = aL$BLbyT[,1]
-                  aL = aL$treeNabu %>% select(branch.abun,branch.length)
-                  R1 = aL$branch.length[aL$branch.abun == 1] %>% sum
-                  R2 = aL$branch.length[aL$branch.abun == 2] %>% sum
-                  R0_hat = ifelse( R2>((R1*Q2)/(2*Q1)) , ((nT-1)/nT)*(R1^2/(2*R2)) , ((nT-1)/nT)*(R1*(Q1-1)/(2*(Q2+1))) )
-                  if(is.na(R0_hat)) { R0_hat <- 0 }
-                  R0_hat
-                  
-                })
-                
-                te = (sapply(raw, rowSums)[1:nrow(data[[1]]),]*(sapply(data, rowSums) == 0)) > 0
-                used_length = sapply(1:N, function(i) {
-                  
-                  if (sum(te[,i]) == 0) return(0) else {
-                    
-                    iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, data = raw[[i]][1:nrow(data[[1]]),], datatype = "incidence_raw", rootExtend = T, refT = reft)$treeNabu %>%
-                      subset(label %in% names(which(te[,i] == TRUE))) %>% select(branch.length) %>% sum
-                    
+                  Q1 = sum(rowSums(x) == 1)
+                  Q2 = sum(rowSums(x) == 2)
+                  aL = iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, 
+                                                  data = x, datatype = "incidence_raw", 
+                                                  rootExtend = T, refT = reft)
+                  aL$treeNabu$branch.length = aL$BLbyT[, 
+                                                       1]
+                  aL = aL$treeNabu %>% select(branch.abun, 
+                                              branch.length)
+                  R1 = aL$branch.length[aL$branch.abun == 
+                                          1] %>% sum
+                  R2 = aL$branch.length[aL$branch.abun == 
+                                          2] %>% sum
+                  R0_hat = ifelse(R2 > ((R1 * Q2)/(2 * 
+                                                     Q1)), ((nT - 1)/nT) * (R1^2/(2 * 
+                                                                                    R2)), ((nT - 1)/nT) * (R1 * (Q1 - 
+                                                                                                                   1)/(2 * (Q2 + 1))))
+                  if (is.na(R0_hat)) {
+                    R0_hat <- 0
                   }
-                  
+                  R0_hat
                 })
-                
+                te = (sapply(raw, rowSums)[1:nrow(data[[1]]), 
+                ] * (sapply(data, rowSums) == 0)) > 
+                  0
+                used_length = sapply(1:N, function(i) {
+                  if (sum(te[, i]) == 0) 
+                    return(0)
+                  else {
+                    iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, 
+                                               data = raw[[i]][1:nrow(data[[1]]), 
+                                               ], datatype = "incidence_raw", 
+                                               rootExtend = T, refT = reft)$treeNabu %>% 
+                      subset(label %in% names(which(te[, 
+                                                       i] == TRUE))) %>% select(branch.length) %>% 
+                      sum
+                  }
+                })
                 R0_hat = R0_hat - used_length
                 R0_hat[R0_hat < 0] = 0
-                
-                unseen_sample = sapply(raw, rowSums)[-(1:nrow(data[[1]])),]
-                if (is.vector(unseen_sample)) unseen_sample = matrix(unseen_sample, ncol = N)
-                
-                L0_hat = sapply(1:length(R0_hat), function(i) if(sum(unseen_sample[,i] > 0) > 0) (R0_hat[i] / nrow(unseen)) else 0 )
-                
-                L0_hat = rowSums((matrix(L0_hat, nrow(unseen_sample), ncol(unseen_sample), byrow = T) * unseen_sample)) / rowSums(unseen_sample)
-                L0_hat[which(rowSums(unseen_sample) == 0)] = 0
-                
-                for (i in 1:length(L0_hat)){
-                  
-                  tip = list(edge = matrix(c(2,1), 1, 2),
-                             tip.label = unseen_name[i],
-                             edge.length = L0_hat[i],
-                             Nnode = 1)
+                unseen_sample = sapply(raw, rowSums)[-(1:nrow(data[[1]])), 
+                ]
+                if (is.vector(unseen_sample)) 
+                  unseen_sample = matrix(unseen_sample, 
+                                         ncol = N)
+                L0_hat = sapply(1:length(R0_hat), function(i) if (sum(unseen_sample[, 
+                                                                                    i] > 0) > 0) 
+                  (R0_hat[i]/nrow(unseen))
+                  else 0)
+                L0_hat = rowSums((matrix(L0_hat, nrow(unseen_sample), 
+                                         ncol(unseen_sample), byrow = T) * 
+                                    unseen_sample))/rowSums(unseen_sample)
+                L0_hat[which(rowSums(unseen_sample) == 
+                               0)] = 0
+                for (i in 1:length(L0_hat)) {
+                  tip = list(edge = matrix(c(2, 1), 
+                                           1, 2), tip.label = unseen_name[i], 
+                             edge.length = L0_hat[i], Nnode = 1)
                   class(tip) = "phylo"
-                  
                   tree_bt = tree_bt + tip
-                  
                 }
-                
-              } else raw = lapply(raw, function(i) i[1:nrow(data[[1]]),])
-              
-            } else {
-              
-              p_bt = p_bt[1:nrow(data[[1]]),]
-              raw = lapply(1:ncol(p_bt), function(j){
-                
-                lapply(1:nrow(p_bt), function(i) rbinom(n = n, size = 1, prob = p_bt[i,j])) %>% do.call(rbind,.)
-                
-              })
-              
-              for (i in 1:length(raw)) rownames(raw[[i]]) = rownames(p_bt)
-              
+              }
+              else raw = lapply(raw, function(i) i[1:nrow(data[[1]]), 
+              ])
             }
-            
-            gamma = Reduce('+', raw)
+            else {
+              p_bt = p_bt[1:nrow(data[[1]]), ]
+              raw = lapply(1:ncol(p_bt), function(j) {
+                lapply(1:nrow(p_bt), function(i) rbinom(n = n, 
+                                                        size = 1, prob = p_bt[i, j])) %>% 
+                  do.call(rbind, .)
+              })
+              for (i in 1:length(raw)) rownames(raw[[i]]) = rownames(p_bt)
+            }
+            gamma = Reduce("+", raw)
             gamma[gamma > 1] = 1
             bootstrap_data_gamma_raw = gamma
             bootstrap_data_gamma_freq = c(n, rowSums(gamma))
-            
-            bootstrap_data_alpha_freq = sapply(raw, rowSums) %>% c(n, .)
-            
-            bootstrap_data_gamma_freq = bootstrap_data_gamma_freq[bootstrap_data_gamma_freq > 0]
-            bootstrap_data_alpha_freq = bootstrap_data_alpha_freq[bootstrap_data_alpha_freq > 0]
-            
-            m_gamma = sapply(level, function(i) coverage_to_size(bootstrap_data_gamma_freq, i, datatype = 'incidence'))
-            m_alpha = sapply(level, function(i) coverage_to_size(bootstrap_data_alpha_freq, i, datatype = 'incidence'))
-            
-            aL = iNEXT.3D:::phyBranchAL_Inc(phylo = tree_bt, data = bootstrap_data_gamma_raw, datatype = "incidence_raw", rootExtend = T, refT = reft)
-            aL$treeNabu$branch.length = aL$BLbyT[,1]
-            aL_table_gamma = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
-            
-            gamma = as.vector(iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length), m = m_gamma, q = q, nt = n, reft = reft, cal="PD") %>% t)
+            bootstrap_data_alpha_freq = sapply(raw, 
+                                               rowSums) %>% c(n, .)
+            bootstrap_data_gamma_freq = bootstrap_data_gamma_freq[bootstrap_data_gamma_freq > 
+                                                                    0]
+            bootstrap_data_alpha_freq = bootstrap_data_alpha_freq[bootstrap_data_alpha_freq > 
+                                                                    0]
+            m_gamma = sapply(level, function(i) iNEXT.beta3D:::coverage_to_size(bootstrap_data_gamma_freq, 
+                                                                                i, datatype = "incidence_freq"))
+            m_alpha = sapply(level, function(i) iNEXT.beta3D:::coverage_to_size(bootstrap_data_alpha_freq, 
+                                                                                i, datatype = "incidence_freq"))
             
             
-            aL_table_alpha = c()
-            
-            for (i in 1:N){
+            if (PDtype == "AUC") {
               
-              x = raw[[i]]
+              PD_auc_bt = PD_AUC_by_data(data = raw, tree = tree_bt, datatype = "incidence_raw",
+                                         m_gamma = m_gamma, m_alpha = m_alpha)
               
-              aL = iNEXT.3D:::phyBranchAL_Inc(phylo = tree_bt, data = x, datatype = "incidence_raw", rootExtend = T, refT = reft)
-              aL$treeNabu$branch.length = aL$BLbyT[,1]
-              aL_table = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
+              gamma = PD_auc_bt$gamma
+              alpha = PD_auc_bt$alpha
+              beta  = PD_auc_bt$beta
               
-              aL_table_alpha = rbind(aL_table_alpha, aL_table)
+            }else{
               
+              aL = iNEXT.3D:::phyBranchAL_Inc(phylo = tree_bt, 
+                                              data = bootstrap_data_gamma_raw, datatype = "incidence_raw", 
+                                              rootExtend = T, refT = reft)
+              aL$treeNabu$branch.length = aL$BLbyT[, 1]
+              aL_table_gamma = aL$treeNabu %>% select(branch.abun, 
+                                                      branch.length, tgroup)
+              gamma = as.vector(iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, 
+                                                     Lis = as.matrix(aL_table_gamma$branch.length), 
+                                                     m = m_gamma, q = q, nt = n, reft = reft, 
+                                                     cal = "PD") %>% t)
+              aL_table_alpha = c()
+              for (i in 1:N) {
+                x = raw[[i]]
+                aL = iNEXT.3D:::phyBranchAL_Inc(phylo = tree_bt, 
+                                                data = x, datatype = "incidence_raw", 
+                                                rootExtend = T, refT = reft)
+                aL$treeNabu$branch.length = aL$BLbyT[, 
+                                                     1]
+                aL_table = aL$treeNabu %>% select(branch.abun, 
+                                                  branch.length, tgroup)
+                aL_table_alpha = rbind(aL_table_alpha, 
+                                       aL_table)
+              }
+              alpha = as.vector((iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, 
+                                                      Lis = as.matrix(aL_table_alpha$branch.length), 
+                                                      m = m_alpha, q = q, nt = n, reft = reft, 
+                                                      cal = "PD")/N) %>% t)
             }
             
-            alpha = as.vector((iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), m = m_alpha, q=q, nt = n, reft = reft, cal = "PD")/N) %>% t)
-            
-            # beta_obs = (iNEXT.3D:::PD.Tprofile(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length), q = q, nt = n, cal = "PD") / 
-            #               (iNEXT.3D:::PD.Tprofile(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), q = q, nt = n, cal = "PD") / N)) %>% unlist()
           }
+          
+          
           
           if (PDtype == 'meanPD') {
             gamma = gamma/reft
             alpha = alpha/reft
           } 
           
-          beta = gamma/alpha
+          if (PDtype != "AUC") {
+            beta = gamma / alpha
+          }
           
           # gamma = c(gamma, rep(0, length(q)))
           # alpha = c(alpha, rep(0, length(q)))
@@ -1863,7 +2102,9 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
             
           }
           
-          beta = gamma/alpha
+          if (FDtype != "AUC") {
+            beta = gamma / alpha
+          }
           
           # gamma = c(gamma, rep(0, length(q)))
           # alpha = c(alpha, rep(0, length(q)))
@@ -1907,6 +2148,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
     if (diversity == "TD") index = "TD"
     if (diversity == "PD" & PDtype == "PD") index = "PD"
     if (diversity == "PD" & PDtype == "meanPD") index = "meanPD"
+    if (diversity == "PD" & PDtype == "AUC") index = "PD_AUC"
     if (diversity == "FD" & FDtype == "tau_value") index = "FD_tau"
     if (diversity == "FD" & FDtype == "AUC") index = "FD_AUC"
     
@@ -2201,70 +2443,234 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
     
     if (diversity == 'PD') {
       
-      if (datatype == 'abundance') {
+      PD_by_time = function(data, tree, reft_i, datatype, m_gamma, m_alpha) {
         
-        aL = iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, data = data_gamma, rootExtend = T, refT = reft)
-        aL$treeNabu$branch.length = aL$BLbyT[,1]
-        aL_table_gamma = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
-        
-        gamma = iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD") %>% t %>% as.data.frame %>% 
-          set_colnames(q) %>% gather(Order.q, Estimate) %>% 
-          mutate(Coverage_real = rep(iNEXT.3D:::Coverage(data_gamma, "abundance", level), length(q)), Size = rep(level, length(q)), Size = rep(level, length(q)))
-        
-        
-        aL_table_alpha = c()
-        
-        for (i in 1:N){
+        if (datatype == "abundance") {
           
-          x = data[data[,i]>0,i]
-          names(x) = rownames(data)[data[,i]>0]
+          data_gamma_i = rowSums(data)
+          data_gamma_i = data_gamma_i[data_gamma_i > 0]
           
-          aL = iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, data = x, rootExtend = T, refT = reft)
-          aL$treeNabu$branch.length = aL$BLbyT[,1]
-          aL_table = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
+          # Gamma
+          aL_gamma = iNEXT.3D:::phyBranchAL_Abu(phylo = tree, data = data_gamma_i, rootExtend = TRUE, refT = reft_i)
           
-          aL_table_alpha = rbind(aL_table_alpha, aL_table)
+          aL_gamma$treeNabu$branch.length = aL_gamma$BLbyT[, 1]
+          
+          aL_table_gamma = aL_gamma$treeNabu %>%
+            dplyr::select(branch.abun, branch.length, tgroup)
+          
+          gamma = iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length),
+                                       m = m_gamma, q = q, nt = n, reft = reft_i, cal = "PD") %>% t() %>% as.vector()
+          
+          
+          # Alpha
+          aL_table_alpha = NULL
+          
+          for (k in seq_len(N)) {
+            
+            x = data[data[, k] > 0, k]
+            
+            names(x) = rownames(data)[data[, k] > 0]
+            
+            aL_alpha = iNEXT.3D:::phyBranchAL_Abu(phylo = tree, data = x, rootExtend = TRUE, refT = reft_i)
+            
+            aL_alpha$treeNabu$branch.length = aL_alpha$BLbyT[, 1]
+            
+            aL_table_k = aL_alpha$treeNabu %>%
+              dplyr::select(branch.abun, branch.length, tgroup)
+            
+            aL_table_alpha = rbind(aL_table_alpha, aL_table_k)
+          }
+          
+          alpha = (iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length),
+                                        m = m_alpha, q = q, nt = n, reft = reft_i, cal = "PD") / N
+          ) %>% t() %>% as.vector()
+        }
+        
+        
+        if (datatype == "incidence_raw") {
+          
+          gamma_raw = Reduce("+", data)
+          gamma_raw[gamma_raw > 1] = 1
+          
+          # Gamma
+          aL_gamma = iNEXT.3D:::phyBranchAL_Inc(phylo = tree, data = as.matrix(gamma_raw), datatype = "incidence_raw",
+                                                rootExtend = TRUE, refT = reft_i)
+          
+          aL_gamma$treeNabu$branch.length = aL_gamma$BLbyT[, 1]
+          
+          aL_table_gamma = aL_gamma$treeNabu %>%
+            dplyr::select(branch.abun, branch.length, tgroup)
+          
+          gamma = iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun,Lis = as.matrix(aL_table_gamma$branch.length),
+                                       m = m_gamma, q = q, nt = n, reft = reft_i, cal = "PD") %>% t() %>% as.vector()
+          
+          
+          # Alpha
+          aL_table_alpha = NULL
+          
+          for (k in seq_len(N)) {
+            
+            x = data[[k]]
+            
+            aL_alpha = iNEXT.3D:::phyBranchAL_Inc(phylo = tree, data = x, datatype = "incidence_raw", rootExtend = TRUE, refT = reft_i)
+            
+            aL_alpha$treeNabu$branch.length = aL_alpha$BLbyT[, 1]
+            
+            aL_table_k = aL_alpha$treeNabu %>% dplyr::select(branch.abun, branch.length, tgroup)
+            
+            aL_table_alpha = rbind(aL_table_alpha, aL_table_k)
+          }
+          
+          alpha = (
+            iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length),
+                                 m = m_alpha, q = q, nt = n, reft = reft_i, cal = "PD") / N) %>% t() %>% as.vector()
+        }
+        
+        gamma = gamma / reft_i
+        alpha = alpha / reft_i
+        
+        return(data.frame(gamma = gamma, alpha = alpha))
+      }
+      PD_AUC_by_data = function(data, tree, datatype, m_gamma, m_alpha) {
+        
+        gamma_alpha_over_time = lapply(PDcut,
+                                       function(reft_i) {PD_by_time(data = data, tree = tree, reft_i = reft_i, datatype = datatype,
+                                                                    m_gamma = m_gamma, m_alpha = m_alpha)})
+        
+        gamma_over_time = sapply(gamma_alpha_over_time,function(x) x$gamma)
+        
+        alpha_over_time = sapply(gamma_alpha_over_time,function(x) x$alpha)
+        
+        if (is.vector(gamma_over_time)) {gamma_over_time = matrix(gamma_over_time,nrow = 1)}
+        
+        if (is.vector(alpha_over_time)) {alpha_over_time = matrix(alpha_over_time,nrow = 1)}
+        
+        gamma_left = gamma_over_time[,-ncol(gamma_over_time),drop = FALSE]
+        
+        gamma_right = gamma_over_time[,-1,drop = FALSE]
+        
+        alpha_left = alpha_over_time[,-ncol(alpha_over_time),drop = FALSE]
+        
+        alpha_right = alpha_over_time[,-1,drop = FALSE]
+        
+        width_matrix = matrix(PDwidth,nrow = nrow(gamma_over_time),ncol = length(PDwidth),byrow = TRUE)
+        
+        gamma = rowSums(((gamma_left + gamma_right) / 2) * width_matrix) / sum(PDwidth)
+        
+        alpha = rowSums(((alpha_left + alpha_right) / 2) * width_matrix) / sum(PDwidth)
+        
+        return(list(gamma = gamma, alpha = alpha))
+      }
+      
+      
+      if (PDtype == "AUC") {
+        
+        PD_auc = PD_AUC_by_data(data = data,tree = PDtree,datatype = datatype,m_gamma = level,m_alpha = level)
+        
+        
+        if (datatype == "abundance") {
+          
+
+          gamma = data.frame(Order.q = rep(q, each = length(level)),
+                             Estimate = PD_auc$gamma,
+                             Coverage_real = rep(iNEXT.3D:::Coverage(data_gamma, "abundance",level),length(q)),
+                             Size = rep(level, times = length(q)))
+          
+          alpha = data.frame(Order.q = rep(q, each = length(level)),
+                             Estimate = PD_auc$alpha,
+                             Coverage_real = rep(iNEXT.3D:::Coverage(data_alpha,"abundance",level),length(q)),
+                             Size = rep(level,times = length(q)))
+          
           
         }
         
         
-        qPDm = iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD")
-        qPDm = qPDm/N
-        alpha = qPDm %>% t %>% as.data.frame %>% 
-          set_colnames(q) %>% gather(Order.q, Estimate) %>% 
-          mutate(Coverage_real = rep(iNEXT.3D:::Coverage(data_alpha, "abundance", level), length(q)), Size = rep(level, length(q)))
+        if (datatype == "incidence_raw") {
+          
+          gamma = data.frame(Order.q = rep(q, each = length(level)),
+            Estimate = PD_auc$gamma,
+            Coverage_real = rep(iNEXT.3D:::Coverage(data_gamma_freq, "incidence_freq",level),length(q)),
+            Size = rep(level, times = length(q)))
+          
+          alpha = data.frame(Order.q = rep(q, each = length(level)),
+            Estimate = PD_auc$alpha,
+            Coverage_real = rep(iNEXT.3D:::Coverage(data_alpha_freq,"incidence_freq",level),length(q)),
+            Size = rep(level,times = length(q)))
+        }
+        
+      } else {
+        
+
+        if (datatype == 'abundance') {
+          
+          aL = iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, data = data_gamma, rootExtend = T, refT = reft)
+          aL$treeNabu$branch.length = aL$BLbyT[,1]
+          aL_table_gamma = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
+          
+          gamma = iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD") %>% t %>% as.data.frame %>% 
+            set_colnames(q) %>% gather(Order.q, Estimate) %>% 
+            mutate(Coverage_real = rep(iNEXT.3D:::Coverage(data_gamma, "abundance", level), length(q)), Size = rep(level, length(q)))
+          
+          
+          aL_table_alpha = c()
+          
+          for (i in 1:N){
+            
+            x = data[data[,i]>0,i]
+            names(x) = rownames(data)[data[,i]>0]
+            
+            aL = iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, data = x, rootExtend = T, refT = reft)
+            aL$treeNabu$branch.length = aL$BLbyT[,1]
+            aL_table = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
+            
+            aL_table_alpha = rbind(aL_table_alpha, aL_table)
+            
+          }
+          
+          
+          qPDm = iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD")
+          qPDm = qPDm/N
+          alpha = qPDm %>% t %>% as.data.frame %>% 
+            set_colnames(q) %>% gather(Order.q, Estimate) %>% 
+            mutate(Coverage_real = rep(iNEXT.3D:::Coverage(data_alpha, "abundance", level), length(q)), Size = rep(level, length(q)))
+          
+        }
+        
+        if (datatype == 'incidence_raw') {
+          
+          aL = iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, data = as.matrix(data_gamma_raw), datatype = "incidence_raw", refT = reft, rootExtend = T)
+          aL$treeNabu$branch.length = aL$BLbyT[,1]
+          aL_table_gamma = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
+          gamma = iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis=as.matrix(aL_table_gamma$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD") %>% t %>% as.data.frame %>% 
+            set_colnames(q) %>% gather(Order.q, Estimate) %>% 
+            mutate(Coverage_real = rep(iNEXT.3D:::Coverage(data_gamma_freq, "incidence_freq", level), length(q)), Size = rep(level, length(q)))
+          
+          aL_table_alpha = c()
+          
+          for (i in 1:N){
+            
+            x = data[[i]]
+            
+            aL = iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, data = x, datatype = "incidence_raw", rootExtend = T, refT = reft)
+            aL$treeNabu$branch.length = aL$BLbyT[,1]
+            aL_table = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
+            
+            aL_table_alpha = rbind(aL_table_alpha, aL_table)
+            
+          }
+          
+          alpha = (iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD")/N) %>% t %>% as.data.frame %>% 
+            set_colnames(q) %>% gather(Order.q, Estimate) %>% 
+            mutate(Coverage_real = rep(iNEXT.3D:::Coverage(data_alpha_freq, "incidence_freq", level), length(q)), Size = rep(level, length(q)))
+          
+          
+        }
+        
         
       }
       
-      if (datatype == 'incidence_raw') {
-        
-        aL = iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, data = as.matrix(data_gamma_raw), datatype = "incidence_raw", refT = reft, rootExtend = T)
-        aL$treeNabu$branch.length = aL$BLbyT[,1]
-        aL_table_gamma = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
-        gamma = iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis=as.matrix(aL_table_gamma$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD") %>% t %>% as.data.frame %>% 
-          set_colnames(q) %>% gather(Order.q, Estimate) %>% 
-          mutate(Coverage_real = rep(iNEXT.3D:::Coverage(data_gamma_freq, "incidence_freq", level), length(q)), Size = rep(level, length(q)))
-        
-        aL_table_alpha = c()
-        
-        for (i in 1:N){
-          
-          x = data[[i]]
-          
-          aL = iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, data = x, datatype = "incidence_raw", rootExtend = T, refT = reft)
-          aL$treeNabu$branch.length = aL$BLbyT[,1]
-          aL_table = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
-          
-          aL_table_alpha = rbind(aL_table_alpha, aL_table)
-          
-        }
-        
-        alpha = (iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD")/N) %>% t %>% as.data.frame %>% 
-          set_colnames(q) %>% gather(Order.q, Estimate) %>% 
-          mutate(Coverage_real = rep(iNEXT.3D:::Coverage(data_alpha_freq, "incidence_freq", level), length(q)), Size = rep(level, length(q)))
-        
-        
-      }
+      
+
       
       gamma = (gamma %>% 
                  mutate(Method = ifelse(Size >= ref_gamma, ifelse(Size == ref_gamma, 'Observed', 'Extrapolation'), 'Rarefaction')))[,c(2,1,5,3,4)] %>% 
@@ -2307,256 +2713,299 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
         # start = Sys.time()
         se = future_lapply(1:nboot, function(i){
           
-          if (datatype == 'abundance') {
-            
+          if (datatype == "abundance") {
             tree_bt = PDtree
-            
-            bootstrap_population = bootstrap_population_multiple_assemblage(data, data_gamma, 'abundance')
+            bootstrap_population = iNEXT.beta3D:::bootstrap_population_multiple_assemblage(data, 
+                                                                                           data_gamma, "abundance")
             p_bt = bootstrap_population
-            unseen_p = p_bt[-(1:nrow(data)),] %>% matrix(ncol = ncol(data))
-            
-            if ( nrow(p_bt) > nrow(data) & sum(unseen_p) > 0 ){
-              
-              unseen = unseen_p[which(rowSums(unseen_p) > 0),]
+            unseen_p = p_bt[-(1:nrow(data)), ] %>% matrix(ncol = ncol(data))
+            if (nrow(p_bt) > nrow(data) & sum(unseen_p) > 
+                0) {
+              unseen = unseen_p[which(rowSums(unseen_p) > 
+                                        0), ]
               unseen = matrix(unseen, ncol = ncol(unseen_p))
-              p_bt = rbind(p_bt[(1:nrow(data)),], unseen)
-              unseen_name = sapply(1:nrow(unseen), function(i) paste0('unseen_', i))
+              p_bt = rbind(p_bt[(1:nrow(data)), ], unseen)
+              unseen_name = sapply(1:nrow(unseen), function(i) paste0("unseen_", 
+                                                                      i))
               rownames(p_bt) = c(rownames(data), unseen_name)
-              
-              bootstrap_sample = sapply(1:ncol(data), function(k) rmultinom(n = 1, size = sum(data[,k]), prob = p_bt[,k]))
+              bootstrap_sample = sapply(1:ncol(data), 
+                                        function(k) rmultinom(n = 1, size = sum(data[, 
+                                                                                     k]), prob = p_bt[, k]))
               x_bt = bootstrap_sample
-              
               rownames(x_bt) = rownames(p_bt)
-              
-              if ( sum(x_bt[-(1:nrow(data)),])>0 ){
-                
-                g0_hat = apply(data, 2, function(x){
-                  
+              if (sum(x_bt[-(1:nrow(data)), ]) > 0) {
+                g0_hat = apply(data, 2, function(x) {
                   n = sum(x)
                   f1 = sum(x == 1)
                   f2 = sum(x == 2)
-                  
-                  aL = iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, data = x, rootExtend = T, refT = reft)
-                  
-                  aL$treeNabu$branch.length = aL$BLbyT[,1]
-                  aL = aL$treeNabu %>% select(branch.abun,branch.length)
-                  g1 = aL$branch.length[aL$branch.abun == 1] %>% sum
-                  g2 = aL$branch.length[aL$branch.abun == 2] %>% sum
-                  g0_hat = ifelse( g2 > ((g1*f2)/(2*f1)) , ((n-1)/n)*(g1^2/(2*g2)) , ((n-1)/n)*(g1*(f1-1)/(2*(f2+1))) )
+                  aL = iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, 
+                                                  data = x, rootExtend = T, refT = reft)
+                  aL$treeNabu$branch.length = aL$BLbyT[, 
+                                                       1]
+                  aL = aL$treeNabu %>% select(branch.abun, 
+                                              branch.length)
+                  g1 = aL$branch.length[aL$branch.abun == 
+                                          1] %>% sum
+                  g2 = aL$branch.length[aL$branch.abun == 
+                                          2] %>% sum
+                  g0_hat = ifelse(g2 > ((g1 * f2)/(2 * 
+                                                     f1)), ((n - 1)/n) * (g1^2/(2 * g2)), 
+                                  ((n - 1)/n) * (g1 * (f1 - 1)/(2 * 
+                                                                  (f2 + 1))))
                   g0_hat
-                  
                 })
-                
-                te = (x_bt[1:nrow(data),]*(data == 0))>0
-                used_length = sapply(1:ncol(data), function(i) { 
-                  
-                  if (sum(te[,i]) == 0) return(0) else {
-                    
-                    iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, data = x_bt[1:nrow(data),i], rootExtend = T, refT = reft)$treeNabu %>%
-                      subset(label %in% names(which(te[,i] == TRUE))) %>% select(branch.length) %>% sum
-                    
+                te = (x_bt[1:nrow(data), ] * (data == 
+                                                0)) > 0
+                used_length = sapply(1:ncol(data), function(i) {
+                  if (sum(te[, i]) == 0) 
+                    return(0)
+                  else {
+                    iNEXT.3D:::phyBranchAL_Abu(phylo = PDtree, 
+                                               data = x_bt[1:nrow(data), i], 
+                                               rootExtend = T, refT = reft)$treeNabu %>% 
+                      subset(label %in% names(which(te[, 
+                                                       i] == TRUE))) %>% select(branch.length) %>% 
+                      sum
                   }
-                  
                 })
-                
                 g0_hat = g0_hat - used_length
                 g0_hat[g0_hat < 0] = 0
-                
-                unseen_sample = x_bt[-(1:nrow(data)),]
-                if (is.vector(unseen_sample)) unseen_sample = matrix(unseen_sample, ncol = ncol(x_bt))
-                
-                L0_hat = sapply(1:length(g0_hat), function(i) if(sum(unseen_sample[,i] > 0) > 0) (g0_hat[i] / nrow(unseen)) else 0 )
-                
-                L0_hat = rowSums((matrix(L0_hat, nrow(unseen_sample), ncol(unseen_sample), byrow = T) * unseen_sample)) / rowSums(unseen_sample)
-                L0_hat[which(rowSums(unseen_sample) == 0)] = 0
-                
-                for (i in 1:length(L0_hat)){
-                  
-                  tip = list(edge = matrix(c(2,1),1,2),
-                             tip.label = unseen_name[i],
-                             edge.length = L0_hat[i],
-                             Nnode = 1)
+                unseen_sample = x_bt[-(1:nrow(data)), 
+                ]
+                if (is.vector(unseen_sample)) 
+                  unseen_sample = matrix(unseen_sample, 
+                                         ncol = ncol(x_bt))
+                L0_hat = sapply(1:length(g0_hat), function(i) if (sum(unseen_sample[, 
+                                                                                    i] > 0) > 0) 
+                  (g0_hat[i]/nrow(unseen))
+                  else 0)
+                L0_hat = rowSums((matrix(L0_hat, nrow(unseen_sample), 
+                                         ncol(unseen_sample), byrow = T) * 
+                                    unseen_sample))/rowSums(unseen_sample)
+                L0_hat[which(rowSums(unseen_sample) == 
+                               0)] = 0
+                for (i in 1:length(L0_hat)) {
+                  tip = list(edge = matrix(c(2, 1), 
+                                           1, 2), tip.label = unseen_name[i], 
+                             edge.length = L0_hat[i], Nnode = 1)
                   class(tip) = "phylo"
-                  
                   tree_bt = tree_bt + tip
-                  
                 }
-                
-              } else {
-                
-                x_bt = x_bt[1:nrow(data),]
-                p_bt = p_bt[1:nrow(data),]
-                
               }
-              
-            } else {
-              
-              p_bt = p_bt[1:nrow(data),]
-              x_bt = sapply(1:ncol(data), function(k) rmultinom(n = 1, size = sum(data[,k]), prob = p_bt[,k]))
+              else {
+                x_bt = x_bt[1:nrow(data), ]
+                p_bt = p_bt[1:nrow(data), ]
+              }
+            }
+            else {
+              p_bt = p_bt[1:nrow(data), ]
+              x_bt = sapply(1:ncol(data), function(k) rmultinom(n = 1, 
+                                                                size = sum(data[, k]), prob = p_bt[, 
+                                                                                                   k]))
               rownames(x_bt) = rownames(data)
-              
             }
-            
             bootstrap_data_gamma = rowSums(x_bt)
-            bootstrap_data_gamma = bootstrap_data_gamma[bootstrap_data_gamma>0]
-            bootstrap_data_alpha = as.matrix(x_bt) %>% as.vector
-            bootstrap_data_alpha = bootstrap_data_alpha[bootstrap_data_alpha>0]
-            
-            aL = iNEXT.3D:::phyBranchAL_Abu(phylo = tree_bt, data = bootstrap_data_gamma, rootExtend = T, refT = reft)
-            aL$treeNabu$branch.length = aL$BLbyT[,1]
-            aL_table_gamma = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
-            
-            gamma = as.vector(iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD") %>% t)
+            bootstrap_data_gamma = bootstrap_data_gamma[bootstrap_data_gamma > 
+                                                          0]
+            bootstrap_data_alpha = as.matrix(x_bt) %>% 
+              as.vector
+            bootstrap_data_alpha = bootstrap_data_alpha[bootstrap_data_alpha > 
+                                                          0]
             
             
-            aL_table_alpha = c()
-            
-            for (i in 1:N){
+            if (PDtype == "AUC") {
               
-              # x = x_bt[x_bt[,i]>0,i]
-              # names(x) = rownames(p_bt)[x_bt[,i]>0]
+              PD_auc_bt = PD_AUC_by_data(data = x_bt, tree = tree_bt, datatype = "abundance",
+                                         m_gamma = level, m_alpha = level)
               
-              x = x_bt[,i]
-              names(x) = rownames(p_bt)
-              x = x[x_bt[,i]>0]
+              gamma = PD_auc_bt$gamma
+              alpha = PD_auc_bt$alpha
               
-              aL = iNEXT.3D:::phyBranchAL_Abu(phylo = tree_bt, data = x, rootExtend = T, refT = reft)
-              aL$treeNabu$branch.length = aL$BLbyT[,1]
-              aL_table = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
+            }else{
               
-              aL_table_alpha = rbind(aL_table_alpha, aL_table)
+              aL = iNEXT.3D:::phyBranchAL_Abu(phylo = tree_bt, 
+                                              data = bootstrap_data_gamma, rootExtend = T, 
+                                              refT = reft)
+              aL$treeNabu$branch.length = aL$BLbyT[, 1]
+              aL_table_gamma = aL$treeNabu %>% select(branch.abun, 
+                                                      branch.length, tgroup)
+              gamma = as.vector(iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, 
+                                                     Lis = as.matrix(aL_table_gamma$branch.length), 
+                                                     m = level, q = q, nt = n, reft = reft, 
+                                                     cal = "PD") %>% t)
+              aL_table_alpha = c()
+              for (i in 1:N) {
+                x = x_bt[, i]
+                names(x) = rownames(p_bt)
+                x = x[x_bt[, i] > 0]
+                aL = iNEXT.3D:::phyBranchAL_Abu(phylo = tree_bt, 
+                                                data = x, rootExtend = T, refT = reft)
+                aL$treeNabu$branch.length = aL$BLbyT[, 
+                                                     1]
+                aL_table = aL$treeNabu %>% select(branch.abun, 
+                                                  branch.length, tgroup)
+                aL_table_alpha = rbind(aL_table_alpha, 
+                                       aL_table)
+              }
+              alpha = as.vector((iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, 
+                                                      Lis = as.matrix(aL_table_alpha$branch.length), 
+                                                      m = level, q = q, nt = n, reft = reft, 
+                                                      cal = "PD")/N) %>% t)
               
             }
             
-            alpha = as.vector((iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), m = level, q = q, nt = n, reft = reft, cal = "PD")/N) %>% t)
             
           }
-          
-          if (datatype == 'incidence_raw') {
-            
+          if (datatype == "incidence_raw") {
             tree_bt = PDtree
-            
-            bootstrap_population = bootstrap_population_multiple_assemblage(data_2D, data_gamma_freq, 'incidence')
+            bootstrap_population = iNEXT.beta3D:::bootstrap_population_multiple_assemblage(data_2D, 
+                                                                                           data_gamma_freq, "incidence")
             p_bt = bootstrap_population
-            unseen_p = p_bt[-(1:nrow(data[[1]])),] %>% matrix(ncol=N)
-            
-            if ( nrow(p_bt) > nrow(data[[1]]) & sum(unseen_p)>0 ){
-              
-              unseen = unseen_p[which(rowSums(unseen_p)>0),]
+            unseen_p = p_bt[-(1:nrow(data[[1]])), ] %>% 
+              matrix(ncol = N)
+            if (nrow(p_bt) > nrow(data[[1]]) & sum(unseen_p) > 
+                0) {
+              unseen = unseen_p[which(rowSums(unseen_p) > 
+                                        0), ]
               unseen = matrix(unseen, ncol = ncol(unseen_p))
-              p_bt = rbind(p_bt[(1:nrow(data[[1]])),], unseen)
-              unseen_name = sapply(1:nrow(unseen), function(i) paste0('unseen_', i))
-              rownames(p_bt) = c(rownames(data[[1]]), unseen_name)
-              
-              raw = lapply(1:ncol(p_bt), function(j){
-                
-                lapply(1:nrow(p_bt), function(i) rbinom(n=n, size=1, prob=p_bt[i,j])) %>% do.call(rbind,.)
-                
+              p_bt = rbind(p_bt[(1:nrow(data[[1]])), 
+              ], unseen)
+              unseen_name = sapply(1:nrow(unseen), function(i) paste0("unseen_", 
+                                                                      i))
+              rownames(p_bt) = c(rownames(data[[1]]), 
+                                 unseen_name)
+              raw = lapply(1:ncol(p_bt), function(j) {
+                lapply(1:nrow(p_bt), function(i) rbinom(n = n, 
+                                                        size = 1, prob = p_bt[i, j])) %>% 
+                  do.call(rbind, .)
               })
-              
               for (i in 1:length(raw)) rownames(raw[[i]]) = rownames(p_bt)
-              
-              if ( lapply(1:length(raw), function(i) raw[[i]][-(1:nrow(data[[1]])),]) %>% do.call(sum,.)>0 ){
-                
-                R0_hat = sapply(data, function(x){
-                  
+              if (lapply(1:length(raw), function(i) raw[[i]][-(1:nrow(data[[1]])), 
+              ]) %>% do.call(sum, .) > 0) {
+                R0_hat = sapply(data, function(x) {
                   nT = ncol(x)
-                  Q1 = sum(rowSums(x)==1)
-                  Q2 = sum(rowSums(x)==2)
-                  
-                  aL = iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, data = x, datatype = "incidence_raw", rootExtend = T, refT = reft)
-                  
-                  aL$treeNabu$branch.length = aL$BLbyT[,1]
-                  aL = aL$treeNabu %>% select(branch.abun,branch.length)
-                  R1 = aL$branch.length[aL$branch.abun == 1] %>% sum
-                  R2 = aL$branch.length[aL$branch.abun == 2] %>% sum
-                  R0_hat = ifelse( R2>((R1*Q2)/(2*Q1)) , ((nT-1)/nT)*(R1^2/(2*R2)) , ((nT-1)/nT)*(R1*(Q1-1)/(2*(Q2+1))) )
+                  Q1 = sum(rowSums(x) == 1)
+                  Q2 = sum(rowSums(x) == 2)
+                  aL = iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, 
+                                                  data = x, datatype = "incidence_raw", 
+                                                  rootExtend = T, refT = reft)
+                  aL$treeNabu$branch.length = aL$BLbyT[, 
+                                                       1]
+                  aL = aL$treeNabu %>% select(branch.abun, 
+                                              branch.length)
+                  R1 = aL$branch.length[aL$branch.abun == 
+                                          1] %>% sum
+                  R2 = aL$branch.length[aL$branch.abun == 
+                                          2] %>% sum
+                  R0_hat = ifelse(R2 > ((R1 * Q2)/(2 * 
+                                                     Q1)), ((nT - 1)/nT) * (R1^2/(2 * 
+                                                                                    R2)), ((nT - 1)/nT) * (R1 * (Q1 - 
+                                                                                                                   1)/(2 * (Q2 + 1))))
                   R0_hat
-                  
                 })
-                
-                te = (sapply(raw, rowSums)[1:nrow(data[[1]]),]*(sapply(data, rowSums) == 0)) > 0
+                te = (sapply(raw, rowSums)[1:nrow(data[[1]]), 
+                ] * (sapply(data, rowSums) == 0)) > 
+                  0
                 used_length = sapply(1:N, function(i) {
-                  
-                  if (sum(te[,i]) == 0) return(0) else {
-                    
-                    iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, data = raw[[i]][1:nrow(data[[1]]),], datatype = "incidence_raw", rootExtend = T, refT = reft)$treeNabu %>%
-                      subset(label %in% names(which(te[,i] == TRUE))) %>% select(branch.length) %>% sum
-                    
+                  if (sum(te[, i]) == 0) 
+                    return(0)
+                  else {
+                    iNEXT.3D:::phyBranchAL_Inc(phylo = PDtree, 
+                                               data = raw[[i]][1:nrow(data[[1]]), 
+                                               ], datatype = "incidence_raw", 
+                                               rootExtend = T, refT = reft)$treeNabu %>% 
+                      subset(label %in% names(which(te[, 
+                                                       i] == TRUE))) %>% select(branch.length) %>% 
+                      sum
                   }
-                  
                 })
-                
                 R0_hat = R0_hat - used_length
                 R0_hat[R0_hat < 0] = 0
-                
-                unseen_sample = sapply(raw, rowSums)[-(1:nrow(data[[1]])),]
-                if (is.vector(unseen_sample)) unseen_sample = matrix(unseen_sample, ncol = N)
-                
-                L0_hat = sapply(1:length(R0_hat), function(i) if(sum(unseen_sample[,i] > 0) > 0) (R0_hat[i] / nrow(unseen)) else 0 )
-                
-                L0_hat = rowSums((matrix(L0_hat, nrow(unseen_sample), ncol(unseen_sample), byrow = T) * unseen_sample)) / rowSums(unseen_sample)
-                L0_hat[which(rowSums(unseen_sample) == 0)] = 0
-                
-                for (i in 1:length(L0_hat)){
-                  
-                  tip = list(edge = matrix(c(2,1), 1, 2),
-                             tip.label = unseen_name[i],
-                             edge.length = L0_hat[i],
-                             Nnode = 1)
+                unseen_sample = sapply(raw, rowSums)[-(1:nrow(data[[1]])), 
+                ]
+                if (is.vector(unseen_sample)) 
+                  unseen_sample = matrix(unseen_sample, 
+                                         ncol = N)
+                L0_hat = sapply(1:length(R0_hat), function(i) if (sum(unseen_sample[, 
+                                                                                    i] > 0) > 0) 
+                  (R0_hat[i]/nrow(unseen))
+                  else 0)
+                L0_hat = rowSums((matrix(L0_hat, nrow(unseen_sample), 
+                                         ncol(unseen_sample), byrow = T) * 
+                                    unseen_sample))/rowSums(unseen_sample)
+                L0_hat[which(rowSums(unseen_sample) == 
+                               0)] = 0
+                for (i in 1:length(L0_hat)) {
+                  tip = list(edge = matrix(c(2, 1), 
+                                           1, 2), tip.label = unseen_name[i], 
+                             edge.length = L0_hat[i], Nnode = 1)
                   class(tip) = "phylo"
-                  
                   tree_bt = tree_bt + tip
-                  
                 }
-                
-              } else raw = lapply(raw, function(i) i[1:nrow(data[[1]]),])
-              
-            } else {
-              
-              p_bt = p_bt[1:nrow(data[[1]]),]
-              raw = lapply(1:ncol(p_bt), function(j){
-                
-                lapply(1:nrow(p_bt), function(i) rbinom(n = n, size = 1, prob = p_bt[i,j])) %>% do.call(rbind,.)
-                
-              })
-              
-              for (i in 1:length(raw)) rownames(raw[[i]]) = rownames(p_bt)
-              
+              }
+              else raw = lapply(raw, function(i) i[1:nrow(data[[1]]), 
+              ])
             }
-            
-            gamma = Reduce('+', raw)
+            else {
+              p_bt = p_bt[1:nrow(data[[1]]), ]
+              raw = lapply(1:ncol(p_bt), function(j) {
+                lapply(1:nrow(p_bt), function(i) rbinom(n = n, 
+                                                        size = 1, prob = p_bt[i, j])) %>% 
+                  do.call(rbind, .)
+              })
+              for (i in 1:length(raw)) rownames(raw[[i]]) = rownames(p_bt)
+            }
+            gamma = Reduce("+", raw)
             gamma[gamma > 1] = 1
             bootstrap_data_gamma_raw = gamma
             bootstrap_data_gamma_freq = c(n, rowSums(gamma))
-            
-            bootstrap_data_alpha_freq = sapply(raw, rowSums) %>% c(n, .)
-            
-            bootstrap_data_gamma_freq = bootstrap_data_gamma_freq[bootstrap_data_gamma_freq > 0]
-            bootstrap_data_alpha_freq = bootstrap_data_alpha_freq[bootstrap_data_alpha_freq > 0]
-            
-            aL = iNEXT.3D:::phyBranchAL_Inc(phylo = tree_bt, data = bootstrap_data_gamma_raw, datatype = "incidence_raw", rootExtend = T, refT = reft)
-            aL$treeNabu$branch.length = aL$BLbyT[,1]
-            aL_table_gamma = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
-            
-            gamma = as.vector(iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, Lis = as.matrix(aL_table_gamma$branch.length), m = level, q = q, nt = n, reft = reft, cal="PD") %>% t)
+            bootstrap_data_alpha_freq = sapply(raw, 
+                                               rowSums) %>% c(n, .)
+            bootstrap_data_gamma_freq = bootstrap_data_gamma_freq[bootstrap_data_gamma_freq > 
+                                                                    0]
+            bootstrap_data_alpha_freq = bootstrap_data_alpha_freq[bootstrap_data_alpha_freq > 
+                                                                    0]
             
             
-            aL_table_alpha = c()
-            
-            for (i in 1:N){
+            if (PDtype == "AUC") {
               
-              x = raw[[i]]
+              PD_auc_bt = PD_AUC_by_data(data = raw, tree = tree_bt, datatype = "incidence_raw",
+                                         m_gamma = level, m_alpha = level)
               
-              aL = iNEXT.3D:::phyBranchAL_Inc(phylo = tree_bt, data = x, datatype = "incidence_raw", rootExtend = T, refT = reft)
-              aL$treeNabu$branch.length = aL$BLbyT[,1]
-              aL_table = aL$treeNabu %>% select(branch.abun, branch.length, tgroup)
+              gamma = PD_auc_bt$gamma
+              alpha = PD_auc_bt$alpha
               
-              aL_table_alpha = rbind(aL_table_alpha, aL_table)
+            }else{
+              
+              aL = iNEXT.3D:::phyBranchAL_Inc(phylo = tree_bt, 
+                                              data = bootstrap_data_gamma_raw, datatype = "incidence_raw", 
+                                              rootExtend = T, refT = reft)
+              aL$treeNabu$branch.length = aL$BLbyT[, 1]
+              aL_table_gamma = aL$treeNabu %>% select(branch.abun, 
+                                                      branch.length, tgroup)
+              gamma = as.vector(iNEXT.3D:::PhD.m.est(ai = aL_table_gamma$branch.abun, 
+                                                     Lis = as.matrix(aL_table_gamma$branch.length), 
+                                                     m = level, q = q, nt = n, reft = reft, 
+                                                     cal = "PD") %>% t)
+              aL_table_alpha = c()
+              for (i in 1:N) {
+                x = raw[[i]]
+                aL = iNEXT.3D:::phyBranchAL_Inc(phylo = tree_bt, 
+                                                data = x, datatype = "incidence_raw", 
+                                                rootExtend = T, refT = reft)
+                aL$treeNabu$branch.length = aL$BLbyT[, 
+                                                     1]
+                aL_table = aL$treeNabu %>% select(branch.abun, 
+                                                  branch.length, tgroup)
+                aL_table_alpha = rbind(aL_table_alpha, 
+                                       aL_table)
+              }
+              alpha = as.vector((iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, 
+                                                      Lis = as.matrix(aL_table_alpha$branch.length), 
+                                                      m = level, q = q, nt = n, reft = reft, 
+                                                      cal = "PD")/N) %>% t)
               
             }
-            
-            alpha = as.vector((iNEXT.3D:::PhD.m.est(ai = aL_table_alpha$branch.abun, Lis = as.matrix(aL_table_alpha$branch.length), m = level, q=q, nt = n, reft = reft, cal = "PD")/N) %>% t)
             
           }
           
@@ -2607,7 +3056,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
       
       FDdistM = as.matrix(FDdistM)
       
-      FD_by_tau = function(data, distM, tau, level, datatype, m_gamma, m_alpha) {
+      FD_by_tau = function(data, distM, tau, datatype, m_gamma, m_alpha) {
         
         if (datatype == 'abundance') {
           
@@ -3116,6 +3565,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
     if (diversity == "TD") index = "TD"
     if (diversity == "PD" & PDtype == "PD") index = "PD"
     if (diversity == "PD" & PDtype == "meanPD") index = "meanPD"
+    if (diversity == "PD" & PDtype == "AUC") index = "PD_AUC"
     if (diversity == "FD" & FDtype == "tau_value") index = "FD_tau"
     if (diversity == "FD" & FDtype == "AUC") index = "FD_AUC"
     
@@ -3300,7 +3750,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
 #' data(Brazil_tree)
 #' output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "coverage", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'meanPD')
+#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC',  PDcut_number = 30) 
 #' 
 #' ggiNEXTbeta3D(output_PDc_abun, type = 'B')
 #' ggiNEXTbeta3D(output_PDc_abun, type = 'D')
@@ -3311,7 +3761,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
 #' data(Brazil_tree)
 #' output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "size", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'meanPD')
+#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC',  PDcut_number = 30) 
 #' 
 #' ggiNEXTbeta3D(output_PDs_abun)
 #' 
@@ -3362,6 +3812,7 @@ ggiNEXTbeta3D = function(output, type = 'B'){
     if (unique(output[[1]]$gamma$Diversity) == 'TD') { ylab = "Taxonomic diversity" }
     if (unique(output[[1]]$gamma$Diversity) == 'PD') { ylab = "Phylogenetic diversity" }
     if (unique(output[[1]]$gamma$Diversity) == 'meanPD') { ylab = "Mean phylogenetic diversity" }
+    if (unique(output[[1]]$gamma$Diversity) == 'PD_AUC') { ylab = "Phylogenetic diversity (AUC)" }
     if (unique(output[[1]]$gamma$Diversity) == 'FD_tau') { ylab = "Functional diversity (given tau)" }
     if (unique(output[[1]]$gamma$Diversity) == 'FD_AUC') { ylab = "Functional diversity (AUC)" }
   }
@@ -3371,6 +3822,7 @@ ggiNEXTbeta3D = function(output, type = 'B'){
     if (unique(output[[1]]$gamma$Diversity) == 'TD') { ylab = "Taxonomic dissimilarity" }
     if (unique(output[[1]]$gamma$Diversity) == 'PD') { ylab = "Phylogenetic dissimilarity" }
     if (unique(output[[1]]$gamma$Diversity) == 'meanPD') { ylab = "Mean phylogenetic dissimilarity" }
+    if (unique(output[[1]]$gamma$Diversity) == 'PD_AUC') { ylab = "Phylogenetic dissimilarity (AUC)" }
     if (unique(output[[1]]$gamma$Diversity) == 'FD_tau') { ylab = "Functional dissimilarity (given tau)" }
     if (unique(output[[1]]$gamma$Diversity) == 'FD_AUC') { ylab = "Functional dissimilarity (AUC)" }
   }
@@ -4056,7 +4508,7 @@ ggplotColors <- function(g){
 #' @param diversity selection of diversity type: \code{'TD'} = Taxonomic diversity, \code{'PD'} = Phylogenetic diversity, and \code{'FD'} = Functional diversity.
 #' @param datatype data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).
 #' @param PDtree (required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format for all observed species in the pooled assemblage. 
-#' @param PDreftime (argument only for \code{diversity = "PD"}), a numerical value specifying reference time for PD. Default is \code{PDreftime = NULL} (i.e., the age of the root of \code{PDtree}).  
+#' @param Reftime the reference time for PD; for \code{PDtype = "AUC"}, it represents the upper limit of the reference-time range used for integration.
 #' @param FDdistM (required argument for \code{diversity = "FD"}), a species pairwise distance matrix for all species in the pooled assemblage. 
 #' @param FDtype (argument only for \code{diversity = "FD"}), select FD type: \code{FDtype = "tau_value"} for FD under a specified threshold value, or \code{FDtype = "AUC"} (area under the curve of tau-profile) for an overall FD which integrates all threshold values between zero and one. Default is \code{FDtype = "AUC"}.  
 #' @param FDtau (argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}), a numerical value between 0 and
