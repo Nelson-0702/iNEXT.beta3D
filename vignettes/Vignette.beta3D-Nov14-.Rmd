@@ -161,7 +161,7 @@ We first describe the main function `iNEXTbeta3D()` with default arguments:
 ```{r eval=FALSE}
 iNEXTbeta3D(data, diversity = "TD", q = c(0, 1, 2), datatype = "abundance",
             base = "coverage", level = NULL, nboot = 10, conf = 0.95,
-            PDtree = NULL, PDreftime = NULL, PDtype = "meanPD",
+            PDtree = NULL, PDreftime = NULL, PDtype = 'AUC',  PDcut_number = 30,
             FDdistM = NULL, FDtype = "AUC", FDtau = NULL, FDcut_number = 30,
             by_pair = FALSE)
 ```
@@ -242,10 +242,19 @@ If users set <code>base = "size"</code>, this function computes size-based stand
 <td align="left">(argument only for <code>diversity = "PD"</code>), a numerical value specifying reference time for PD. Default is <code>PDreftime=NULL</code>. 
 (i.e., the age of the root of <code>PDtree</code>)</td>
 
-</tr>
 <tr class="odd">
 <td align="center"><code>PDtype</code></td>
-<td align="left">(argument only for <code>diversity = "PD"</code>), select PD type: <code>PDtype = "PD"</code> (effective total branch length) or <code>PDtype = "meanPD"</code> (effective number of equally divergent lineages). Default is <code>PDtype = "meanPD"</code>, where <code>meanPD</code> = PD/tree depth.</td>
+<td align="left">(argument only for <code>diversity = "PD"</code>), select PD type:
+<code>PDtype = "PD"</code> for effective total branch length,
+<code>PDtype = "meanPD"</code> for effective number of equally divergent lineages,
+or <code>PDtype = "AUC"</code> (area under the curve of the tree-depth profile) for an overall PD which integrates mean phylogenetic diversity over phylogenetic tree depth. Default is <code>PDtype = "AUC"</code>.</td>
+</tr>
+
+<tr class="even">
+<td align="center"><code>PDcut_number</code></td>
+<td align="left">(argument only for <code>diversity = "PD"</code> and <code>PDtype = "AUC"</code>),
+a positive integer greater than one specifying the number of equally spaced phylogenetic tree-depth values used to numerically approximate the AUC. Default is <code>PDcut_number = 30</code>. A larger value can be used to obtain a more accurate AUC approximation.</td>
+</tr>
 
 </tr>
 <tr class="even">
@@ -577,7 +586,12 @@ output_TDs_inci_byuser
 
 As with taxonomic diversity, `iNEXT.beta3D` computes coverage-based standardized phylogenetic gamma, alpha, beta diversity as well as four classes of phylogenetic dissimilarity indices; it also computes size-based standardized phylogenetic gamma and alpha diversity. The species names (or identification codes) in the phylogenetic tree must exactly match with those in the corresponding species abundance/incidence data. Two types of phylogenetic rarefaction and extrapolation curves (coverage- and size-based sampling curves) are also provided. 
 
-The required argument for performing PD analysis is `PDtree`. For example, the phylogenetic tree for all observed species (including species in "Marim", "Rebio2", and "Rochedo" fragments) is stored in a data file named `"Brazil_tree"`. Then we enter the argument `PDtree = Brazil_tree`. Two optional arguments are: `PDtype` and `PDreftime`. There are two options for `PDtype`: `"PD"` (effective total branch length) or `"meanPD"` (effective number of equally divergent lineages, meanPD = PD/tree depth). Default is `PDtype = "meanPD"`. `PDreftime` is a numerical value specifying a reference time for computing phylogenetic diversity. By default (`PDreftime = NULL`), the reference time is set to the tree depth, i.e., age of the root of the phylogenetic tree. Run the following code to perform PD analysis. The output data frame is similar to that based on abundance data and thus is omitted. 
+
+The required argument for performing PD analysis is `PDtree`. For example, the phylogenetic
+tree for all observed species (including species in "Marim", "Rebio2", and "Rochedo" fragments)
+is stored in a data file named `"Brazil_tree"`. Then we enter the argument `PDtree = Brazil_tree`. Three optional arguments are `PDtype`, `PDreftime`, and `PDcut_number`. There are three options for `PDtype`: `"PD"` (effective total branch length), `"meanPD"` (effective number of equally divergent lineages, meanPD = PD/tree depth), or `"AUC"` (an integrated mean phylogenetic diversity over phylogenetic tree depth). Default is `PDtype = "AUC"`. `PDreftime` is a numerical value specifying the reference time for phylogenetic diversity. For `PDtype = "AUC"`, `PDreftime` specifies the upper limit of phylogenetic tree depth used for integration. By default (`PDreftime = NULL`), the age of the root of the phylogenetic tree is used. `PDcut_number` specifies the number of equally spaced phylogenetic tree-depth values used to
+numerically approximate the AUC. Default is `PDcut_number = 30`. A larger value can be used to
+obtain a more accurate AUC approximation. Run the following code to perform PD analysis. The output data frame is similar to that based on abundance data and thus is omitted.
 
 
 ```{r eval=FALSE}
@@ -587,7 +601,7 @@ data(Brazil_tree)
 
 output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
                               datatype = 'abundance', base = "coverage", nboot = 10, 
-                              PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'meanPD')
+                              PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30)
 output_PDc_abun
 ```
 
@@ -598,7 +612,7 @@ data(Brazil_tree)
 
 output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
                               datatype = 'abundance', base = "coverage", nboot = 10, 
-                              PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'meanPD')
+                              PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30)
 ```
 
 
@@ -619,14 +633,108 @@ data(Brazil_tree)
 
 output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
                               datatype = 'abundance', base = "size", nboot = 10, 
-                              PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'meanPD')
+                              PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30)
 ggiNEXTbeta3D(output_PDs_abun)
 ```
 
 
+
+
+### EXAMPLE 6: Abundance data for all pairs of assemblages with user-specified sample sizes or coverage values
+
+In addition to the default sample sizes or coverage values, `iNEXTbeta3D` also computes standardized phylogenetic diversity estimates for all pairs of assemblages with a particular vector of user-specified sample sizes or coverage values. The following commands return the PD estimates with two user-specified levels of sample coverage (e.g., 85% and 90%). Only the output for gamma, alpha and beta is shown below in each dataset; the output for 1-C, 1-U, 1-V, 1-S is omitted.
+
+```{r eval=FALSE}
+## Coverage-based R/E Analysis for all pairs of assemblages with phylogenetic diversity for abundance data
+data(Brazil_rainforests)
+data(Brazil_tree)
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_PDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'PD',
+                                     datatype = 'abundance', base = "coverage", nboot = 10,
+                                     level = c(0.85, 0.9),
+                                     PDtree = Brazil_tree, PDreftime = NULL,
+                                     PDtype = 'AUC', PDcut_number = 30,
+                                     by_pair = TRUE)
+output_PDc_abun_byuser
+
+```
+
+
+
+```{r echo=FALSE}
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_PDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'PD',
+                                     datatype = 'abundance', base = "coverage", nboot = 10,
+                                     level = c(0.85, 0.9),
+                                     PDtree = Brazil_tree, PDreftime = NULL,
+                                     PDtype = 'AUC', PDcut_number = 30,
+                                     by_pair = TRUE)
+
+tmp = output_PDc_abun_byuser
+tmp = lapply(tmp, function(x) lapply(x[1:3], function(y) {
+  y[,c(4:6, 8:10)] = round(y[,c(4:6, 8:10)], 3)
+  y = y[,-ncol(y)]
+  y
+}))
+class(tmp) = "iNEXTbeta3D"
+tmp
+
+```
+
+The following commands return the PD estimates for all pairs of assemblages with two user-specified levels of sample sizes (e.g., 300 and 500).
+
+```{r eval=FALSE}
+## Size-based R/E for all pairs of assemblages with phylogenetic gamma and alpha diversity
+
+data(Brazil_rainforests)
+data(Brazil_tree)
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_PDs_abun_byuser = iNEXTbeta3D(data = data, diversity = 'PD',
+                                     datatype = 'abundance', base = "size", nboot = 10,
+                                     level = c(300, 500),
+                                     PDtree = Brazil_tree, PDreftime = NULL,
+                                     PDtype = 'AUC', PDcut_number = 30,
+                                     by_pair = TRUE)
+output_PDs_abun_byuser
+
+```
+
+
+```{r echo=FALSE}
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_PDs_abun_byuser = iNEXTbeta3D(data = data, diversity = 'PD',
+                                     datatype = 'abundance', base = "size", nboot = 10,
+                                     level = c(300, 500),
+                                     PDtree = Brazil_tree, PDreftime = NULL,
+                                     PDtype = 'AUC', PDcut_number = 30,
+                                     by_pair = TRUE)
+
+tmp = output_PDs_abun_byuser
+tmp = lapply(tmp, function(x) lapply(x, function(y) {
+  y[,c(4:6, 8:10)] = round(y[,c(4:6, 8:10)], 3)
+  y = y[,-ncol(y)]
+  y
+}))
+class(tmp) = "iNEXTbeta3D"
+tmp
+
+```
+
 ## <span style="color:blue;">FUNCTIONAL DIVERSITY (FD): RAREFACTION/EXTRAPOLATION VIA EXAMPLES</span>
 
-### EXAMPLE 6: Abundance data with default sample sizes or coverage values (not by pairs)
+### EXAMPLE 7: Abundance data with default sample sizes or coverage values (not by pairs)
 
 As with taxonomic and phylogenetic diversity, `iNEXT.beta3D` computes coverage-based standardized functional gamma, alpha, beta diversity as well as four classes of functional dissimilarity indices; it also computes size-based standardized functional gamma and alpha diversity. The species names (or identification codes) in the distance matrix must exactly match with those in the corresponding species abundance/incidence data. Two types of functional rarefaction and extrapolation curves (coverage- and size-based sampling curves) are also provided. 
 
@@ -676,6 +784,102 @@ output_FDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'FD',
                               FDdistM = Brazil_distM, FDtype = 'AUC', FDcut_number = 30)
 ggiNEXTbeta3D(output_FDs_abun)
 ```
+
+
+
+### EXAMPLE 8: Abundance data for all pairs of assemblages with user-specified sample sizes or coverage values
+
+In addition to the default sample sizes or coverage values, `iNEXTbeta3D` also computes standardized functional diversity estimates for all pairs of assemblages with a particular vector of user-specified sample sizes or coverage values. The following commands return the FD estimates with two user-specified levels of sample coverage (e.g., 85% and 90%). Only the output for gamma, alpha and beta is shown below in each dataset; the output for 1-C, 1-U, 1-V, 1-S is omitted.
+
+```{r eval=FALSE}
+## Coverage-based R/E Analysis for all pairs of assemblages with functional diversity for abundance data
+data(Brazil_rainforests)
+data(Brazil_distM)
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_FDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'FD',
+                                     datatype = 'abundance', base = "coverage", nboot = 10,
+                                     level = c(0.85, 0.9),
+                                     FDdistM = Brazil_distM,
+                                     FDtype = 'AUC', FDcut_number = 30,
+                                     by_pair = TRUE)
+output_FDc_abun_byuser
+
+
+
+```
+
+
+```{r echo=FALSE}
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_FDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'FD',
+                                     datatype = 'abundance', base = "coverage", nboot = 10,
+                                     level = c(0.85, 0.9),
+                                     FDdistM = Brazil_distM,
+                                     FDtype = 'AUC', FDcut_number = 30,
+                                     by_pair = TRUE)
+
+tmp = output_FDc_abun_byuser
+tmp = lapply(tmp, function(x) lapply(x[1:3], function(y) {
+  y[,c(4:6, 8:10)] = round(y[,c(4:6, 8:10)], 3)
+  y = y[,-ncol(y)]
+  y
+}))
+class(tmp) = "iNEXTbeta3D"
+tmp
+
+
+```
+
+The following commands return the FD estimates for all pairs of assemblages with two user-specified levels of sample sizes (e.g., 300 and 500).
+
+
+```{r}
+## Size-based R/E for all pairs of assemblages with functional gamma and alpha diversity
+data(Brazil_rainforests)
+data(Brazil_distM)
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_FDs_abun_byuser = iNEXTbeta3D(data = data, diversity = 'FD',
+                                     datatype = 'abundance', base = "size", nboot = 10,
+                                     level = c(300, 500),
+                                     FDdistM = Brazil_distM,
+                                     FDtype = 'AUC', FDcut_number = 30,
+                                     by_pair = TRUE)
+output_FDs_abun_byuser
+
+```
+
+```{r}
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_FDs_abun_byuser = iNEXTbeta3D(data = data, diversity = 'FD',
+                                     datatype = 'abundance', base = "size", nboot = 10,
+                                     level = c(300, 500),
+                                     FDdistM = Brazil_distM,
+                                     FDtype = 'AUC', FDcut_number = 30,
+                                     by_pair = TRUE)
+
+tmp = output_FDs_abun_byuser
+tmp = lapply(tmp, function(x) lapply(x, function(y) {
+  y[,c(4:6, 8:10)] = round(y[,c(4:6, 8:10)], 3)
+  y = y[,-ncol(y)]
+  y
+}))
+class(tmp) = "iNEXTbeta3D"
+tmp
+
+```
+
 
 
 ## <span style="color:red;">DATA INFORMATION: FUNCTION DataInfobeta3D()</span>

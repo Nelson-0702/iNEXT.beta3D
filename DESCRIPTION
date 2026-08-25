@@ -45,10 +45,8 @@ Suggests: testthat,
 Encoding: UTF-8
 BugReports: https://github.com/AnneChao/iNEXT.beta3D/issues
 LazyData: yes
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 ByteCompile: true
 Packaged: 2024-02-15 14:00:00 UTC; KaiHsiang
 Repository: CRAN
-
-
