@@ -238,8 +238,7 @@ If users set <code>base = "size"</code>, this function computes size-based stand
 </tr>
 <tr class="even">
 <td align="center"><code>PDreftime</code></td>
-<td align="left">(argument only for <code>diversity = "PD"</code>), a numerical value specifying reference time for PD. Default is <code>PDreftime=NULL</code>. 
-(i.e., the age of the root of <code>PDtree</code>)</td>
+<td align="left">(argument only for <code>diversity = "PD"</code>), a numerical value specifying the reference time for PD. For <code>PDtype = "AUC"</code>, <code>PDreftime</code> specifies the upper limit of phylogenetic tree depth used for integration. Default is <code>PDreftime = NULL</code>, in which case the age of the root of <code>PDtree</code> is used.</td>
 
 <tr class="odd">
 <td align="center"><code>PDtype</code></td>
@@ -255,7 +254,7 @@ or <code>PDtype = "AUC"</code> (area under the curve of the tree-depth profile) 
 a positive integer greater than one specifying the number of equally spaced phylogenetic tree-depth values used to numerically approximate the AUC. Default is <code>PDcut_number = 30</code>. A larger value can be used to obtain a more accurate AUC approximation.</td>
 </tr>
 
-</tr>
+
 <tr class="odd">
 <td align="center"><code>FDdistM</code></td>
 <td align="left">	(required argument for <code>diversity = "FD"</code>), a species pairwise distance matrix for all species in the pooled assemblage.</td>
@@ -737,7 +736,7 @@ tmp
 
 As with taxonomic and phylogenetic diversity, `iNEXT.beta3D` computes coverage-based standardized functional gamma, alpha, beta diversity as well as four classes of functional dissimilarity indices; it also computes size-based standardized functional gamma and alpha diversity. The species names (or identification codes) in the distance matrix must exactly match with those in the corresponding species abundance/incidence data. Two types of functional rarefaction and extrapolation curves (coverage- and size-based sampling curves) are also provided. 
 
-The required argument for performing FD analysis is `FDdistM`. For example, the distance matrix for all species (including species in "Marim", "Rebio2", and "Rochedo" fragments) is stored in a data file named `"Brazil_distM"`. Then we enter the argument `FDdistM = Brazil_distM`. Three  optional arguments are (1) `FDtype`: `FDtype = "AUC"`means FD is computed from the area under the curve of a tau-profile by integrating all plausible threshold values between zero and one;  `FDtype = "tau_value"` means FD is computed under a specific threshold value to be specified in the argument `FD_tau`. (2) `FD_tau`: a numerical value specifying the tau value (threshold level) that will be used to compute FD. If `FDtype = "tau_value"` and `FD_tau = NULL`, then the threshold level is set to be the mean distance between any two individuals randomly selected from the pooled data over all datasets (i.e., quadratic entropy). (3)  `FDcut_number` is a numeric number to cut [0, 1] interval into equal-spaced sub-intervals to obtain the AUC value. Default is `FDcut_number = 30`. If more accurate integration is desired, then use a larger integer. Run the following code to perform FD analysis. The output data frame is similar to that based on abundance data and thus is omitted; see later graphical display of the output. 
+The required argument for performing FD analysis is `FDdistM`. For example, the distance matrix for all species (including species in "Marim", "Rebio2", and "Rochedo" fragments) is stored in a data file named `"Brazil_distM"`. Then we enter the argument `FDdistM = Brazil_distM`. Three optional arguments are (1) `FDtype`: `FDtype = "AUC"` means FD is computed from the area under the curve of a tau-profile by integrating all plausible threshold values between zero and one;  `FDtype = "tau_value"` means FD is computed under a specific threshold value to be specified in the argument `FDtau`. (2) `FDtau`: a numerical value specifying the tau value (threshold level) that will be used to compute FD. If `FDtype = "tau_value"` and `FDtau = NULL`, then the threshold level is set to be the mean distance between any two individuals randomly selected from the pooled data over all datasets (i.e., quadratic entropy). (3)  `FDcut_number` is a numeric number to cut [0, 1] interval into equal-spaced sub-intervals to obtain the AUC value. Default is `FDcut_number = 30`. If more accurate integration is desired, then use a larger integer. Run the following code to perform FD analysis. The output data frame is similar to that based on abundance data and thus is omitted; see later graphical display of the output. 
 
 
 ```{r eval=FALSE}
