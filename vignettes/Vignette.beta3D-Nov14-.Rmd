@@ -1,7 +1,7 @@
 ---
 title: "An Introduction to iNEXT.beta3D via Examples"
-author: "Anne Chao and Kai-Hsiang Hu"
-date: "Latest version 1.1.0 (Nov. 2024)"
+author: "Anne Chao, Yu-Ti Lee, Keng-Lei Lin, and Po-Yen Chuang"
+date: "Latest version 1.1.0 (Aug. 2026)"
 output:
   rmarkdown::html_vignette:
     vignette: >
@@ -21,9 +21,8 @@ library(iNEXT.beta3D)
 ```
 
 
-<font color=#FF6781>The Latest Update in Nov. 2024: In earlier versions, diversity decomposition (alpha, beta, gamma, and dissimilarity) was performed only for all assemblages of datasets. In the updated version, we have added a logical argument "by_pair" in the main function "iNEXTbeta3D" to specify whether diversity decomposition will be performed for pairs of assemblages or not. If "by_pair = TRUE", alpha/beta/gamma diversity or dissimilarity will be computed for all pairs of assemblages in the input data; if "by_pair =  FALSE", alpha/beta/gamma diversity or dissimilarity will be computed for K assemblages (i.e., K can be greater than two) when data for K assemblages are provided in the input data. Default is "by_pair = FALSE".</font>
+<!-- <font color=#FF6781>The Latest Update in Nov. 2024: In earlier versions, diversity decomposition (alpha, beta, gamma, and dissimilarity) was performed only for all assemblages of datasets. In the updated version, we have added a logical argument "by_pair" in the main function "iNEXTbeta3D" to specify whether diversity decomposition will be performed for pairs of assemblages or not. If "by_pair = TRUE", alpha/beta/gamma diversity or dissimilarity will be computed for all pairs of assemblages in the input data; if "by_pair = FALSE", alpha/beta/gamma diversity or dissimilarity will be computed for K assemblages (i.e., K can be greater than two) when data for K assemblages are provided in the input data. Default is "by_pair = FALSE". In addition, we have added an AUC-based phylogenetic diversity measure ("PDtype = AUC"), which integrates mean phylogenetic diversity over phylogenetic tree depth. The default setting for phylogenetic diversity is now "PDtype = AUC".</font> -->
 
-\
 
 The package `iNEXT.beta3D` (iNterpolation and EXTrapolation with beta diversity for three dimensions of biodiversity) is a sequel to `iNEXT.` The three dimensions (3D) of biodiversity include <font color=#FF6781>taxonomic diversity (TD)</font>, <font color=#FF6781>phylogenetic diversity (PD)</font> and <font color=#FF6781>functional diversity (FD)</font>. This document provides an introduction demonstrating how to run `iNEXT.beta3D`. An online version [iNEXT.beta3D Online](https://chao.shinyapps.io/iNEXT_beta3D/) is also available for users without an R background.
 
@@ -257,31 +256,31 @@ a positive integer greater than one specifying the number of equally spaced phyl
 </tr>
 
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center"><code>FDdistM</code></td>
 <td align="left">	(required argument for <code>diversity = "FD"</code>), a species pairwise distance matrix for all species in the pooled assemblage.</td>
 
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center"><code>FDtype</code></td>
 <td align="left">(argument only for <code>diversity = "FD"</code>), select FD type: <code>FDtype = "tau_value"</code> for FD under a specified threshold value, or <code>FDtype = "AUC"</code> (area under the curve of tau-profile) for an overall FD which integrates all threshold values between zero and one. Default is <code>FDtype = "AUC"</code>.</td>
 
 
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center"><code>FDtau</code></td>
 <td align="left">(argument only for <code>diversity = "FD"</code> and <code>FDtype="tau_value"</code>),  
 a numerical value between 0 and 1 specifying the tau value (threshold level) that will be used to compute FD. If <code>FDtau = NULL</code> (default), then the threshold level is set to be the mean distance between any two individuals randomly selected from the pooled dataset (i.e., quadratic entropy).</td>
 
 </tr>
-<tr class="odd">
+<tr class="even">
 <td align="center"><code>FDcut_number</code></td>
 <td align="left">(argument only for <code>diversity = "FD"</code> and <code>FDtype="AUC"</code>), 
 a numeric number to cut [0, 1] interval into equal-spaced sub-intervals to obtain the AUC value by integrating the tau-profile. Equivalently, the number of tau values that will be considered to compute the integrated AUC value. Default is <code>FDcut_number = 30</code>. A larger value can be set to obtain more accurate AUC value.</td>
 
 
 </tr>
-<tr class="even">
+<tr class="odd">
 <td align="center"><code>by_pair</code></td>
 <td align="left">a logical variable specifying whether to perform diversity decomposition for all pairs of assemblages or not. If <code>by_pair = TRUE</code>, alpha/beta/gamma diversity will be computed for all pairs of assemblages in the input data; if <code>by_pair = FALSE</code>, alpha/beta/gamma diversity will be computed for multiple assemblages (i.e, more than two assemblages) in the input data. Default is <code>FALSE</code>.</td>
 
@@ -839,7 +838,7 @@ tmp
 The following commands return the FD estimates for all pairs of assemblages with two user-specified levels of sample sizes (e.g., 300 and 500).
 
 
-```{r}
+```{r eval=FALSE}
 ## Size-based R/E for all pairs of assemblages with functional gamma and alpha diversity
 data(Brazil_rainforests)
 data(Brazil_distM)
@@ -857,7 +856,7 @@ output_FDs_abun_byuser
 
 ```
 
-```{r}
+```{r echo=FALSE}
 
 data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
