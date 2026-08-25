@@ -71,7 +71,7 @@
 #'  \item{s.e.}{standard error of standardized estimate.}
 #'  \item{LCL, UCL}{the bootstrap lower and upper confidence limits for the diversity/dissimilarity with a default significance level of 0.95.}
 #'  \item{Diversity}{\code{'TD'} = 'Taxonomic diversity', \code{'PD'} = 'Phylogenetic diversity', \code{'meanPD'} = 'Mean phylogenetic diversity', \code{'PD_AUC'} = 'Phylogenetic diversity (AUC)', \code{'FD_tau'} = 'Functional diversity (given tau)', \code{'FD_AUC'} = 'Functional diversity (AUC)'}
-#'  \item{Reftime}{the reference time for PD.}
+#'  \item{Reftime}{the reference time for PD; for \code{PDtype = "AUC"}, it represents the upper limit of the reference-time range used for integration.}
 #'  \item{Tau}{the threshold of functional distinctiveness between any two species for FD (under \code{FDtype = "tau_value"}).}
 #'  Similar output is obtained for \code{base = "size"}.\cr
 #'  
@@ -158,7 +158,7 @@
 #' data(Brazil_tree)
 #' output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "coverage", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC',  PDcut_number = 30) 
+#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30) 
 #' output_PDc_abun
 #' 
 #' 
@@ -167,7 +167,7 @@
 #' data(Brazil_tree)
 #' output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "size", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC',  PDcut_number = 30) 
+#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30) 
 #' output_PDs_abun
 #' 
 #' 
@@ -3750,7 +3750,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
 #' data(Brazil_tree)
 #' output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "coverage", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC',  PDcut_number = 30) 
+#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30) 
 #' 
 #' ggiNEXTbeta3D(output_PDc_abun, type = 'B')
 #' ggiNEXTbeta3D(output_PDc_abun, type = 'D')
@@ -3761,7 +3761,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
 #' data(Brazil_tree)
 #' output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "size", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC',  PDcut_number = 30) 
+#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30) 
 #' 
 #' ggiNEXTbeta3D(output_PDs_abun)
 #' 
@@ -4508,7 +4508,7 @@ ggplotColors <- function(g){
 #' @param diversity selection of diversity type: \code{'TD'} = Taxonomic diversity, \code{'PD'} = Phylogenetic diversity, and \code{'FD'} = Functional diversity.
 #' @param datatype data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).
 #' @param PDtree (required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format for all observed species in the pooled assemblage. 
-#' @param Reftime the reference time for PD; for \code{PDtype = "AUC"}, it represents the upper limit of the reference-time range used for integration.
+#' @param PDreftime (argument only for \code{diversity = "PD"}), a numerical value specifying reference time for PD. Default is \code{PDreftime = NULL} (i.e., the age of the root of \code{PDtree}).
 #' @param FDdistM (required argument for \code{diversity = "FD"}), a species pairwise distance matrix for all species in the pooled assemblage. 
 #' @param FDtype (argument only for \code{diversity = "FD"}), select FD type: \code{FDtype = "tau_value"} for FD under a specified threshold value, or \code{FDtype = "AUC"} (area under the curve of tau-profile) for an overall FD which integrates all threshold values between zero and one. Default is \code{FDtype = "AUC"}.  
 #' @param FDtau (argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}), a numerical value between 0 and
