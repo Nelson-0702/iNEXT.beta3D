@@ -33,7 +33,7 @@ DataInfobeta3D(
 \item{FDtype}{(argument only for \code{diversity = "FD"}), select FD type: \code{FDtype = "tau_value"} for FD under a specified threshold value, or \code{FDtype = "AUC"} (area under the curve of tau-profile) for an overall FD which integrates all threshold values between zero and one. Default is \code{FDtype = "AUC"}.}
 
 \item{FDtau}{(argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}), a numerical value between 0 and
-1 specifying the tau value (threshold level) that will be used to compute FD. If \code{FDtype = NULL} (default), 
+1 specifying the tau value (threshold level) that will be used to compute FD. If \code{FDtau = NULL} (default), 
 then threshold level is set to be the mean distance between any two individuals randomly selected from the pooled 
 dataset (i.e., quadratic entropy).}
 
@@ -47,7 +47,7 @@ For abundance data, basic information shared by TD, mean-PD and FD
 sample size (\code{n}), observed species richness (\code{S.obs}), sample coverage estimates of the reference sample (\code{SC(n)}), 
 sample coverage estimate for twice the reference sample size (\code{SC(2n)}). Other additional information is given below.\cr\cr
 (1) TD: the first five species abundance frequency counts in the reference sample (\code{f1}--\code{f5}).\cr\cr
-(2) Mean-PD: the the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
+(2) mean-PD: the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
 the number of singletons (\code{f1*}) and doubletons (\code{f2*}) in the node/branch abundance set, as well as the total branch length 
 of those singletons (\code{g1}) and of those doubletons (\code{g2}), and the reference time (\code{Reftime}).\cr\cr
 (3) FD (\code{FDtype = "AUC"}): the minimum distance (\code{dmin}) and the maximum distance (\code{dmax}) among all non-diagonal elements in the distance matrix, 

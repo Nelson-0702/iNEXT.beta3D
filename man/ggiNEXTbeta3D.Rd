@@ -15,18 +15,21 @@ ggiNEXTbeta3D(output, type = "B")
 Skip the argument for plotting size-based rarefaction and extrapolation sampling curves for gamma and alpha diversity.}
 }
 \value{
-a figure for gamma, alpha, and beta diversity, or a figure for four dissimilarity indices for \code{base = "coverage"}; 
-or a figure for gamma and alpha diversity when \code{base = "size"}.\cr
+A figure showing gamma, alpha, and beta diversity or the four dissimilarity
+indices when \code{base = "coverage"}, or a figure showing gamma and alpha diversity
+when \code{base = "size"}.
 }
 \description{
 \code{ggiNEXTbeta3D} is an \code{ggplot2} extension for the \code{iNEXTbeta3D} 
 object to plot sample-size- and coverage-based rarefaction/extrapolation curves.
-(only accept the outcome from \code{iNEXTbeta3D} under \code{by_pair = FALSE})
+(This function only accepts the output from \code{iNEXTbeta3D} with \code{by_pair = FALSE})
 }
 \examples{
 \donttest{
 ## (Graphic Display) Taxonomic diversity for abundance data
 # Coverage-based rarefaction and extrapolation sampling curves 
+# See Example 1 in the iNEXT.beta3D vignette for details.
+
 data(Brazil_rainforests)
 output_TDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
                               datatype = 'abundance', base = "coverage", nboot = 10)
@@ -36,6 +39,7 @@ ggiNEXTbeta3D(output_TDc_abun, type = 'D')
 }
 
 # Size-based rarefaction and extrapolation sampling curves 
+
 data(Brazil_rainforests)
 output_TDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
                               datatype = 'abundance', base = "size", nboot = 10)
@@ -45,6 +49,8 @@ ggiNEXTbeta3D(output_TDs_abun)
 \donttest{
 ## (Graphic Display) Taxonomic diversity for incidence data
 # Coverage-based rarefaction and extrapolation sampling curves 
+# See Example 3 in the iNEXT.beta3D vignette for details.
+
 data(Second_growth_forests)
 data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
             "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
@@ -56,6 +62,7 @@ ggiNEXTbeta3D(output_TDc_inci, type = 'D')
 }
 
 # Size-based rarefaction and extrapolation sampling curves 
+
 data(Second_growth_forests)
 data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
             "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
@@ -67,6 +74,8 @@ ggiNEXTbeta3D(output_TDs_inci)
 \donttest{
 ## (Graphic Display) Phylogenetic diversity for abundance data
 # Coverage-based rarefaction and extrapolation sampling curves 
+# See Example 5 in the iNEXT.beta3D vignette for details.
+
 data(Brazil_rainforests)
 data(Brazil_tree)
 output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
@@ -78,6 +87,7 @@ ggiNEXTbeta3D(output_PDc_abun, type = 'D')
 
 
 # Size-based rarefaction and extrapolation sampling curves 
+
 data(Brazil_rainforests)
 data(Brazil_tree)
 output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
@@ -90,6 +100,8 @@ ggiNEXTbeta3D(output_PDs_abun)
 ## (Graphic Display) Functional diversity for abundance data when all threshold levels 
 ## from 0 to 1 are considered
 # Coverage-based rarefaction and extrapolation sampling curves 
+# See Example 7 in the iNEXT.beta3D vignette for details.
+
 data(Brazil_rainforests)
 data(Brazil_distM)
 output_FDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'FD', 
@@ -101,6 +113,7 @@ ggiNEXTbeta3D(output_FDc_abun, type = 'D')
 
 
 # Size-based rarefaction and extrapolation sampling curves 
+
 data(Brazil_rainforests)
 data(Brazil_distM)
 output_FDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'FD', 

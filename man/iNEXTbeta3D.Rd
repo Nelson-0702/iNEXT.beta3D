@@ -104,14 +104,29 @@ with a particular vector of user-specified sample sizes or coverage values. See 
 \donttest{
 ## (R/E Analysis) Taxonomic diversity for abundance data
 # Coverage-based standardized TD estimates and related statistics (not by pairs)
+# See Example 1 in the iNEXT.beta3D vignette for details and graphical output.
+
 data(Brazil_rainforests)
 output_TDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
                               datatype = 'abundance', base = "coverage", nboot = 10)
 output_TDc_abun
 }
 
+
+
+# Size-based standardized TD estimates and related statistics (not by pairs)
+
+data(Brazil_rainforests)
+output_TDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
+                              datatype = 'abundance', base = "size", nboot = 10)
+output_TDs_abun
+
+
+
 # Coverage-based standardized TD estimates and related statistics for all pairs of 
 # assemblages by user-specified coverage values
+# See Example 2 in the iNEXT.beta3D vignette for details.
+
 data(Brazil_rainforests)
 data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
@@ -121,15 +136,10 @@ output_TDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'TD',
 output_TDc_abun_byuser
 
 
-# Size-based standardized TD estimates and related statistics (not by pairs)
-data(Brazil_rainforests)
-output_TDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
-                              datatype = 'abundance', base = "size", nboot = 10)
-output_TDs_abun
-
 
 # Size-based standardized TD estimates and related statistics for all pairs of 
 # assemblages by user-specified sample sizes
+
 data(Brazil_rainforests)
 data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
@@ -141,6 +151,8 @@ output_TDs_abun_byuser
 \donttest{
 ## (R/E Analysis) Taxonomic diversity for incidence data
 # Coverage-based standardized TD estimates and related statistics (not by pairs)
+# See Example 3 in the iNEXT.beta3D vignette for details and graphical output.
+
 data(Second_growth_forests)
 data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
             "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
@@ -149,16 +161,10 @@ output_TDc_inci = iNEXTbeta3D(data = data, diversity = 'TD',
 output_TDc_inci
 }
 
-# Coverage-based standardized TD estimates and related statistics for all pairs of 
-# assemblages by user-specified coverage values
-data(Second_growth_forests)
-output_TDc_inci_byuser = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
-                                     datatype = 'incidence_raw', base = "coverage", 
-                                     nboot = 10, level = c(0.9, 0.95), by_pair = TRUE)
-output_TDc_inci_byuser
 
 
 # Size-based standardized TD estimates and related statistics (not by pairs)
+
 data(Second_growth_forests)
 data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
             "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
@@ -167,17 +173,34 @@ output_TDs_inci = iNEXTbeta3D(data = data, diversity = 'TD',
 output_TDs_inci
 
 
+
+
+# Coverage-based standardized TD estimates and related statistics for all pairs of 
+# assemblages by user-specified coverage values
+# See Example 4 in the iNEXT.beta3D vignette for details.
+
+data(Second_growth_forests)
+output_TDc_inci_byuser = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
+                                     datatype = 'incidence_raw', base = "coverage", 
+                                     nboot = 10, level = c(0.9, 0.95), by_pair = TRUE)
+output_TDc_inci_byuser
+
+
 # Size-based standardized TD estimates and related statistics for all pairs of 
 # assemblages by user-specified sample sizes
+
 data(Second_growth_forests)
 output_TDs_inci_byuser = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
                                      datatype = 'incidence_raw', base = "size", 
                                      nboot = 10, level = c(100, 200), by_pair = TRUE)
 output_TDs_inci_byuser
 
+
 \donttest{
 ## (R/E Analysis) Phylogenetic diversity for abundance data
 # Coverage-based standardized PD estimates and related statistics (not by pairs)
+# See Example 5 in the iNEXT.beta3D vignette for details and graphical output.
+
 data(Brazil_rainforests)
 data(Brazil_tree)
 output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
@@ -187,6 +210,7 @@ output_PDc_abun
 
 
 # Size-based standardized PD estimates and related statistics (not by pairs)
+
 data(Brazil_rainforests)
 data(Brazil_tree)
 output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
@@ -195,9 +219,42 @@ output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD',
 output_PDs_abun
 
 
+# Coverage-based R/E Analysis for all pairs of assemblages with phylogenetic diversity for abundance data
+# See Example 6 in the iNEXT.beta3D vignette for details.
+
+data(Brazil_rainforests)
+data(Brazil_tree)
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_PDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'PD',
+                                     datatype = 'abundance', base = "coverage", nboot = 10,
+                                     level = c(0.85, 0.9), PDtree = Brazil_tree, PDreftime = NULL,
+                                     PDtype = 'AUC', PDcut_number = 30, by_pair = TRUE)
+output_PDc_abun_byuser
+
+# Size-based R/E for all pairs of assemblages with phylogenetic gamma and alpha diversity
+
+data(Brazil_rainforests)
+data(Brazil_tree)
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_PDs_abun_byuser = iNEXTbeta3D(data = data, diversity = 'PD',
+                                     datatype = 'abundance', base = "size", nboot = 10,
+                                     level = c(300, 500), PDtree = Brazil_tree, PDreftime = NULL,
+                                    PDtype = 'AUC', PDcut_number = 30, by_pair = TRUE)
+output_PDs_abun_byuser
+
+
+
 ## (R/E Analysis) Functional diversity for abundance data when all thresholds from 0 to 1 
 ## are considered
 # Coverage-based standardized FD estimates and related statistics (not by pairs)
+# See Example 7 in the iNEXT.beta3D vignette for details and graphical output.
+
 data(Brazil_rainforests)
 data(Brazil_distM)
 output_FDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'FD', 
@@ -213,6 +270,43 @@ output_FDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'FD',
                               datatype = 'abundance', base = "size", nboot = 10, 
                               FDdistM = Brazil_distM, FDtype = 'AUC', FDcut_number = 30)
 output_FDs_abun
+
+
+
+# Coverage-based R/E Analysis for all pairs of assemblages with functional diversity for abundance data
+# See Example 8 in the iNEXT.beta3D vignette for details.
+
+data(Brazil_rainforests)
+data(Brazil_distM)
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_FDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'FD',
+                                     datatype = 'abundance', base = "coverage", nboot = 10,
+                                     level = c(0.85, 0.9), FDdistM = Brazil_distM,
+                                     FDtype = 'AUC', FDcut_number = 30, by_pair = TRUE)
+output_FDc_abun_byuser
+
+# Size-based R/E for all pairs of assemblages with functional gamma and alpha diversity
+
+data(Brazil_rainforests)
+data(Brazil_distM)
+
+data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
+            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
+
+output_FDs_abun_byuser = iNEXTbeta3D(data = data, diversity = 'FD',
+                                     datatype = 'abundance', base = "size", nboot = 10,
+                                    level = c(300, 500), FDdistM = Brazil_distM,
+                                    FDtype = 'AUC', FDcut_number = 30, by_pair = TRUE)
+output_FDs_abun_byuser
+
+
+
+
+
+
 }
 
 

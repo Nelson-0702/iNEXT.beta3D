@@ -2,17 +2,25 @@ Package: iNEXT.beta3D
 Type: Package
 Title: Interpolation and Extrapolation with Beta Diversity for Three Dimensions of Biodiversity
 Version: 1.1.0
-Author: Anne Chao [aut, cre], KaiHsiang Hu [ctb]
+Author: Anne Chao [aut, cre], Yu-Ti Lee [aut], Keng-Lei Lin [aut], Po-Yen Chuang [aut]
 Maintainer: Anne Chao <chao@stat.nthu.edu.tw>
-Authors@R: 
-  c(person("Anne", 
-           "Chao", 
-           role = c("aut","cre"),
+Authors@R:
+  c(person("Anne",
+           "Chao",
+           role = c("aut", "cre"),
            email = "chao@stat.nthu.edu.tw"),
-    person("KaiHsiang", 
-           "Hu", 
-           role = "ctb",
-           email = "river19951224@gmail.com"))
+    person("Yu-Ti", 
+           "Lee", 
+           role = "aut",
+           email = "didil0907@gmail.com"),
+    person("Keng-Lei", 
+           "Lin", 
+           role = "aut",
+           email = "boolin20021106@gmail.com"),
+    person("Po-Yen", 
+           "Chuang", 
+           role = "aut",
+           email = "zerind0970983096@gmail.com"))
 URL: https://sites.google.com/view/chao-lab-website/software/inext-beta3d
 Description: As a sequel to 'iNEXT', the 'iNEXT.beta3D' package provides functions to compute 
               standardized taxonomic, phylogenetic, and functional diversity (3D) estimates 
@@ -45,8 +53,6 @@ Suggests: testthat,
 Encoding: UTF-8
 BugReports: https://github.com/AnneChao/iNEXT.beta3D/issues
 LazyData: yes
-RoxygenNote: 7.3.3
 VignetteBuilder: knitr
+RoxygenNote: 7.3.3
 ByteCompile: true
-Packaged: 2024-02-15 14:00:00 UTC; KaiHsiang
-Repository: CRAN
