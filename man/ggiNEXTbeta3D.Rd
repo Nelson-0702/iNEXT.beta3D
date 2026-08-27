@@ -20,7 +20,7 @@ indices when \code{base = "coverage"}, or a figure showing gamma and alpha diver
 when \code{base = "size"}.
 }
 \description{
-\code{ggiNEXTbeta3D} is an \code{ggplot2} extension for the \code{iNEXTbeta3D} 
+\code{ggiNEXTbeta3D} is a \code{ggplot2} extension for the \code{iNEXTbeta3D} 
 object to plot sample-size- and coverage-based rarefaction/extrapolation curves.
 (This function only accepts the output from \code{iNEXTbeta3D} with \code{by_pair = FALSE})
 }

@@ -10,14 +10,14 @@
   Each 1-ha forest was divided into 100 subplots (each with 0.01 ha) and only species' incidence records 
   in each subplot were used to compute the incidence frequency for a species 
   (i.e., the number of subplots in which that species occurred); see Chazdon et al. (2021, 2022)
-  for sampling details and pertinent analyses. The original time series data covers 2005 to 2017; here only three-year data
-   (2005, 2011, and 2017) are used for assessing temporal beta diversity between the three years within each forest. 
+  for sampling details and pertinent analyses. The original time series data cover 2005 to 2017; here only data from three years
+  (2005, 2011, and 2017) are used for assessing temporal beta diversity among the three years within each forest. 
   
 
 }
 \usage{data(Second_growth_forests)}
 \format{
-  Second_growth_forests is a list with three forests. The input format for each forests is a list with three species-by-sampling-units matrices ("Year_2005", "Year_2011", and "Year_2017"). Each matrix record the species as 0 (undetect) or 1 (detect) in each sampling units. \cr
+  Second_growth_forests is a list with two forests. The input format for each forest is a list with three species-by-sampling-unit matrices ("Year_2005", "Year_2011", and "Year_2017"). Each matrix records the species as 0 (non-detection) or 1 (detection) in each sampling unit. \cr
   A list of 2  \cr
   $ CR 2005 vs. 2011 vs. 2017: A list of 3 \cr
   .. ..$ Year_2005 (152 (species) x 100 (quadrats)) \cr

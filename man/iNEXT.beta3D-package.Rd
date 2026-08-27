@@ -7,7 +7,7 @@
 }
 \description{
   This package \code{iNEXT.beta3D} (iNterpolation and EXTrapolation with beta diversity for three dimensions of biodiversity)
-  is a sequel to \code{iNEXT}. Here the three dimensions (3D) of diversity includes taxonomic diversity (TD),
+  is a sequel to \code{iNEXT}. Here the three dimensions (3D) of diversity include taxonomic diversity (TD),
   phylogenetic diversity (PD) and functional diversity (FD). An online version "iNEXT.beta3D Online"
   (https://chao.shinyapps.io/iNEXT_beta3D/) is also available for users without an R background.\cr
   
@@ -58,7 +58,7 @@
   (2) the gamma reference sample in the pooled assemblage, and (3) the alpha reference sample in the joint assemblage.
 }
 \author{
-Anne Chao, K.H. Hu \cr
+Anne Chao, Yu-Ti Lee, Keng-Lei Lin, Po-Yen Chuang \cr
 
 Maintainer: Anne Chao <chao@stat.nthu.edu.tw>
 }

@@ -10,7 +10,7 @@
 #' @param diversity selection of diversity type: \code{'TD'} = Taxonomic diversity, \code{'PD'} = Phylogenetic diversity, and \code{'FD'} = Functional diversity.
 #' @param q a numerical vector specifying the diversity orders. Default is \code{c(0, 1, 2)}.
 #' @param datatype data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).
-#' @param base standardization base: coverage-based rarefaction and extrapolation for gamma, alpha, beta diversity, and four classes of dissimilarity indices (\code{base = "coverage"}), or sized-based rarefaction and extrapolation for gamma and alpha diversity (\code{base = "size"}). Default is \code{base = "coverage"}.
+#' @param base standardization base: coverage-based rarefaction and extrapolation for gamma, alpha, beta diversity, and four classes of dissimilarity indices (\code{base = "coverage"}), or size-based rarefaction and extrapolation for gamma and alpha diversity (\code{base = "size"}). Default is \code{base = "coverage"}.
 #' @param level a numerical vector specifying the particular values of sample coverage (between 0 and 1 when 
 #' \code{base = "coverage"}) or sample sizes (\code{base = "size"}) that will be used to compute standardized
 #'  diversity/dissimilarity. Asymptotic diversity estimator can be obtained by setting \code{level = 1}
@@ -32,10 +32,10 @@
 #' @param FDdistM (required argument for \code{diversity = "FD"}), a species pairwise distance matrix for all species in the pooled dataset. 
 #' @param FDtype (argument only for \code{diversity = "FD"}), select FD type: \code{FDtype = "tau_value"} for FD under a specified threshold value, or \code{FDtype = "AUC"} (area under the curve of tau-profile) for an overall FD which integrates all threshold values between zero and one. Default is \code{FDtype = "AUC"}.  
 #' @param FDtau (argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}), a numerical value between 0 and
-#'  1 specifying the tau value (threshold level) that will be used to compute FD. If \code{FDtype = NULL} (default), 
+#'  1 specifying the tau value (threshold level) that will be used to compute FD. If \code{FDtau = NULL} (default), 
 #'  then threshold level is set to be the mean distance between any two individuals randomly selected from the pooled 
 #'  dataset (i.e., quadratic entropy). 
-#' @param FDcut_number (argument only for \code{diversity = "FD"} and \code{FDtype = "AUC"}), a numeric number to cut [0, 1] interval into equal-spaced sub-intervals to obtain the AUC value by integrating the tau-profile. Equivalently, the number of tau values that will be considered to compute the integrated AUC value. Default is \code{FDcut_number = 30}. A larger value can be set to obtain more accurate AUC value.
+#' @param FDcut_number (argument only for \code{diversity = "FD"} and \code{FDtype = "AUC"}), a numeric number to cut [0, 1] interval into equal-spaced sub-intervals to obtain the AUC value by integrating the tau-profile. Equivalently, the number of tau values that will be considered to compute the integrated AUC value. Default is \code{FDcut_number = 30}. A larger value can be used to obtain a more accurate AUC approximation.
 #' @param by_pair a logical variable specifying whether to perform diversity decomposition for all pairs of assemblages or not. If \code{by_pair = TRUE}, alpha/beta/gamma diversity will be computed for all pairs of assemblages in the input data; if \code{by_pair = FALSE}, alpha/beta/gamma diversity will be computed for multiple assemblages (i.e, more than two assemblages) in the input data. Default is \code{FALSE}. 
 #' 
 #' @import magrittr
@@ -3782,7 +3782,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
 
 #' ggplot2 extension for the iNEXTbeta3D object
 #' 
-#' \code{ggiNEXTbeta3D} is an \code{ggplot2} extension for the \code{iNEXTbeta3D} 
+#' \code{ggiNEXTbeta3D} is a \code{ggplot2} extension for the \code{iNEXTbeta3D} 
 #' object to plot sample-size- and coverage-based rarefaction/extrapolation curves.
 #' (This function only accepts the output from \code{iNEXTbeta3D} with \code{by_pair = FALSE})
 #' 
