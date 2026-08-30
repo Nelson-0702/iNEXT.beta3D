@@ -8,6 +8,7 @@ DataInfobeta3D(
   data,
   diversity = "TD",
   datatype = "abundance",
+  PDtype = "meanPD",
   PDtree = NULL,
   PDreftime = NULL,
   FDdistM = NULL,
@@ -24,9 +25,11 @@ DataInfobeta3D(
 
 \item{datatype}{data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).}
 
-\item{PDtree}{(required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format for all observed species in the pooled assemblage.}
+\item{PDtype}{(argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "meanPD"} for mean phylogenetic diversity, or \code{PDtype = "AUC"} for an overall measure that integrates mean phylogenetic diversity over all time reference points from zero to the age of the root. Default is \code{PDtype = "meanPD"}.}
 
-\item{PDreftime}{(argument only for \code{diversity = "PD"}), a numerical value specifying reference time for PD. Default is \code{PDreftime = NULL} (i.e., the age of the root of \code{PDtree}).}
+\item{PDtree}{(required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format spanned by all observed species across the input datasets.}
+
+\item{PDreftime}{(argument only for \code{diversity = "PD"} and \code{PDtype = "meanPD"}), a numerical value specifying a fixed time reference point for phylogenetic diversity. Default is \code{PDreftime = NULL}, in which case the age of the root of the phylogenetic tree spanned by the pooled observed species is used.}
 
 \item{FDdistM}{(required argument for \code{diversity = "FD"}), a species pairwise distance matrix for all species in the pooled assemblage.}
 
@@ -37,29 +40,29 @@ DataInfobeta3D(
 then threshold level is set to be the mean distance between any two individuals randomly selected from the pooled 
 dataset (i.e., quadratic entropy).}
 
-\item{by_pair}{a logical variable specifying whether to perform diversity decomposition for all pairs of assemblages or not. If \code{by_pair = TRUE}, alpha/beta/gamma diversity will be computed for all pairs of assemblages in the input data; if \code{by_pair = FALSE}, alpha/beta/gamma diversity will be computed for multiple assemblages (i.e, more than two assemblages) in the input data. Default is \code{FALSE}.}
+\item{by_pair}{a logical variable specifying whether diversity decomposition is performed for all assemblages as a whole or for every pair of assemblages. If \code{by_pair = FALSE}, alpha/beta/gamma diversity and dissimilarity are computed for all assemblages within each dataset as a whole; if \code{by_pair = TRUE}, the corresponding output is computed for every pair of assemblages. Default is \code{FALSE}.}
 }
 \value{
 a data.frame including basic data information.\cr\cr 
-For abundance data, basic information shared by TD, mean-PD and FD
- includes dataset name (\code{Dataset}), combinations of assemblage pairs (\code{Pair}, if calculating not by pairs, then there is no such column), 
- individual/pooled/joint assemblage (\code{Assemblage}),
-sample size (\code{n}), observed species richness (\code{S.obs}), sample coverage estimates of the reference sample (\code{SC(n)}), 
+For abundance data, basic information shared by TD, PD and FD includes dataset name (\code{Dataset}), combinations of assemblage pairs (\code{Pair}, included only when the analysis is performed for every pair of assemblages),
+individual/pooled/joint assemblage (\code{Assemblage}), sample size (\code{n}), observed species richness (\code{S.obs}), sample coverage estimate of the reference sample (\code{SC(n)}), 
 sample coverage estimate for twice the reference sample size (\code{SC(2n)}). Other additional information is given below.\cr\cr
 (1) TD: the first five species abundance frequency counts in the reference sample (\code{f1}--\code{f5}).\cr\cr
-(2) mean-PD: the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
+(2) PD (\code{PDtype = "meanPD"}): the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
 the number of singletons (\code{f1*}) and doubletons (\code{f2*}) in the node/branch abundance set, as well as the total branch length 
 of those singletons (\code{g1}) and of those doubletons (\code{g2}), and the reference time (\code{Reftime}).\cr\cr
-(3) FD (\code{FDtype = "AUC"}): the minimum distance (\code{dmin}) and the maximum distance (\code{dmax}) among all non-diagonal elements in the distance matrix, 
+(3) PD (\code{PDtype = "AUC"}): the minimum time reference point (\code{Tree.depth.min}) and the maximum time reference point
+(\code{Tree.depth.max}) used for calculating the integrated mean phylogenetic diversity. The minimum time reference point is zero,
+and the maximum time reference point is the age of the root of the phylogenetic tree spanned by the pooled observed species.\cr\cr
+(4) FD (\code{FDtype = "AUC"}): the minimum distance (\code{dmin}) and the maximum distance (\code{dmax}) among all non-diagonal elements in the distance matrix, 
 and the mean distance between any two individuals randomly selected from the dataset (\code{dmean}).\cr\cr
-(4) FD (\code{FDtype = "tau_value"}): the number of singletons (\code{a1*}) and of doubletons (\code{a2*}) among the functionally indistinct
+(5) FD (\code{FDtype = "tau_value"}): the number of singletons (\code{a1*}) and of doubletons (\code{a2*}) among the functionally indistinct
  set at the specified threshold level \code{'Tau'}, as well as the total contribution of singletons (\code{h1}) and of doubletons (\code{h2})
   at the specified threshold level \code{'Tau'}.\cr\cr
  
- For incidence data, the basic information for TD includes dataset name (\code{Dataset}), combinations of assemblage pairs (\code{Pair}, if calculating not by pairs, then there is no such column), 
- individual/pooled/joint assemblage (\code{Assemblage}), number of sampling units (\code{T}), total number of incidences (\code{U}), observed species richness (\code{S.obs}), 
- sample coverage estimates of the reference sample (\code{SC(T)}), sample coverage estimate for twice the reference sample size
- (\code{SC(2T)}), as well as the first five species incidence frequency counts (\code{Q1}--\code{Q5}) in the reference sample. For mean-PD and FD, output is similar to that
+For incidence data, the basic information for TD includes dataset name (\code{Dataset}), combinations of assemblage pairs (\code{Pair}, included only when the analysis is performed for every pair of assemblages),
+individual/pooled/joint assemblage (\code{Assemblage}), number of sampling units (\code{T}), total number of incidences (\code{U}), observed species richness (\code{S.obs}), sample coverage estimate of the reference sample (\code{SC(T)}), sample coverage estimate for twice the reference sample size
+ (\code{SC(2T)}), as well as the first five species incidence frequency counts (\code{Q1}--\code{Q5}) in the reference sample. For PD and FD, output is similar to that
  for abundance data.
 }
 \description{
@@ -68,26 +71,17 @@ and the mean distance between any two individuals randomly selected from the dat
  joint assemblage for TD, PD and FD.
 }
 \examples{
-## (Data Information) Taxonomic diversity for abundance data (not by pairs)
+## (Data Information) Taxonomic diversity for abundance data
 data(Brazil_rainforests)
 info_TD_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
                               datatype = 'abundance')
 info_TD_abun
 
 
-## (Data Information) Taxonomic diversity for abundance data for all pairs of assemblages
-data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
-            "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
-info_TD_abun_pair = DataInfobeta3D(data = data, diversity = 'TD', datatype = 'abundance',
-                                   by_pair = TRUE)
-info_TD_abun_pair
-
 
 ## (Data Information) Taxonomic diversity for incidence data (not by pairs)
 data(Second_growth_forests)
-data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
-            "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
-info_TD_inci = DataInfobeta3D(data = data, diversity = 'TD',
+info_TD_inci = DataInfobeta3D(data = Second_growth_forests, diversity = 'TD',
                               datatype = 'incidence_raw')
 info_TD_inci
 
@@ -99,16 +93,23 @@ info_TD_inci_pair = DataInfobeta3D(data = Second_growth_forests, diversity = 'TD
 info_TD_inci_pair
 
 \donttest{
-## (Data Information) Mean phylogenetic diversity for abundance data (not by pairs)
+## (Data Information) Mean phylogenetic diversity for abundance data 
 data(Brazil_rainforests)
 data(Brazil_tree)
-info_PD_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
-                              datatype = 'abundance', PDtree = Brazil_tree, PDreftime = NULL)
-info_PD_abun
-}
+info_meanPD_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
+                                  datatype = 'abundance', PDtype = 'meanPD', PDtree = Brazil_tree,
+                                  PDreftime = NULL)
+info_meanPD_abun
+
+## (Data Information) Phylogenetic diversity (AUC) for abundance data 
+data(Brazil_rainforests)
+data(Brazil_tree)
+info_PDAUC_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
+                                  datatype = 'abundance', PDtype = 'AUC',
+                                  PDtree = Brazil_tree)
+info_PDAUC_abun 
 
 ## (Data Information) Functional diversity for abundance data under a specified threshold level
-## (not by pairs)
 data(Brazil_rainforests)
 data(Brazil_distM)
 info_FDtau_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'FD', 
@@ -118,12 +119,11 @@ info_FDtau_abun
 
 
 ## (Data Information) Functional diversity for abundance data when all threshold levels
-## from 0 to 1 are considered (not by pairs)
 data(Brazil_rainforests)
 data(Brazil_distM)
 info_FDAUC_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'FD', 
                                  datatype = 'abundance', FDdistM = Brazil_distM, FDtype = 'AUC')
 info_FDAUC_abun
-
+}
 
 }

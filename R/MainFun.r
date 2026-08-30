@@ -25,18 +25,16 @@
 #'     up to double the reference sample size.
 #' @param nboot a positive integer specifying the number of bootstrap replications when assessing sampling uncertainty and constructing confidence intervals. Bootstrap replications are generally time consuming. Set \code{nboot = 0} to skip the bootstrap procedures. Default is \code{nboot = 10}. If more accurate results are required, set \code{nboot = 100} (or \code{nboot = 200}).
 #' @param conf a positive number < 1 specifying the level of confidence interval. Default is 0.95.
-#' @param PDtree (required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format for all observed species in the pooled assemblage. 
-#' @param PDreftime (argument only for \code{diversity = "PD"}), a numerical value specifying the reference time for PD. For \code{PDtype = "AUC"}, \code{PDreftime} specifies the upper limit of phylogenetic tree depth used for integration. Default is \code{PDreftime = NULL}, in which case the age of the root of \code{PDtree} is used.
-#' @param PDtype (argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "PD"} for effective total branch length, \code{PDtype = "meanPD"} for effective number of equally divergent lineages, or \code{PDtype = "AUC"} for an integrated mean phylogenetic diversity over phylogenetic tree depth. Default is \code{PDtype = "AUC"}.
-#' @param PDcut_number (argument only for \code{diversity = "PD"} and \code{PDtype = "AUC"}), a positive integer larger than one specifying the number of equally spaced phylogenetic tree-depth values used to numerically approximate the AUC. Default is \code{PDcut_number = 30}. A larger value can be used to obtain a more accurate AUC approximation.
+#' @param PDtree (required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format spanned by all observed species across the input datasets.
+#' @param PDreftime (argument only for \code{diversity = "PD"} and \code{PDtype = "PD"} or \code{PDtype = "meanPD"}), a numerical value specifying a fixed time reference point for phylogenetic diversity. Default is \code{PDreftime = NULL}, in which case the age of the root of the phylogenetic tree spanned by the pooled observed species is used.
+#' @param PDtype (argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "PD"} for effective total branch length, \code{PDtype = "meanPD"} for effective number of equally divergent lineages, or \code{PDtype = "AUC"} for an overall measure that integrates mean phylogenetic diversity over all time reference points from zero to the age of the root. Default is \code{PDtype = "AUC"}.
+#' @param PDcut_number (argument only for \code{diversity = "PD"} and \code{PDtype = "AUC"}), a positive integer larger than one specifying the number of equally spaced time reference points between zero and the age of the root used to numerically approximate the AUC. Default is \code{PDcut_number = 30}. A larger value can be used to obtain a more accurate AUC approximation.
 #' @param FDdistM (required argument for \code{diversity = "FD"}), a species pairwise distance matrix for all species in the pooled dataset. 
 #' @param FDtype (argument only for \code{diversity = "FD"}), select FD type: \code{FDtype = "tau_value"} for FD under a specified threshold value, or \code{FDtype = "AUC"} (area under the curve of tau-profile) for an overall FD which integrates all threshold values between zero and one. Default is \code{FDtype = "AUC"}.  
-#' @param FDtau (argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}), a numerical value between 0 and
-#'  1 specifying the tau value (threshold level) that will be used to compute FD. If \code{FDtau = NULL} (default), 
-#'  then threshold level is set to be the mean distance between any two individuals randomly selected from the pooled 
-#'  dataset (i.e., quadratic entropy). 
+#' @param FDtau (argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}), a numerical value between 0 and 1 specifying the tau value (threshold level) that will be used to compute FD. If \code{FDtau = NULL} (default), then threshold level is set to be the mean distance between any two individuals randomly selected from the pooled dataset (i.e., quadratic entropy). 
 #' @param FDcut_number (argument only for \code{diversity = "FD"} and \code{FDtype = "AUC"}), a numeric number to cut [0, 1] interval into equal-spaced sub-intervals to obtain the AUC value by integrating the tau-profile. Equivalently, the number of tau values that will be considered to compute the integrated AUC value. Default is \code{FDcut_number = 30}. A larger value can be used to obtain a more accurate AUC approximation.
-#' @param by_pair a logical variable specifying whether to perform diversity decomposition for all pairs of assemblages or not. If \code{by_pair = TRUE}, alpha/beta/gamma diversity will be computed for all pairs of assemblages in the input data; if \code{by_pair = FALSE}, alpha/beta/gamma diversity will be computed for multiple assemblages (i.e, more than two assemblages) in the input data. Default is \code{FALSE}. 
+#' @param by_pair a logical variable specifying whether diversity decomposition is performed for all assemblages as a whole or for every pair of assemblages. If \code{by_pair = FALSE}, alpha/beta/gamma diversity and dissimilarity are computed for all assemblages within each dataset as a whole; if \code{by_pair = TRUE}, the corresponding output is computed for every pair of assemblages. Default is \code{FALSE}.
+#' 
 #' 
 #' @import magrittr
 #' @import ggplot2
@@ -62,7 +60,7 @@
 #'  
 #'  For \code{base = "coverage"}, the output in each data frame includes: 
 #'  \item{Dataset}{the name of dataset.}
-#'  \item{Pair}{combinations of assemblage pairs; if calculating not by pairs, then there is no such column}
+#'  \item{Pair}{combinations of assemblage pairs; this column is included only when the analysis is performed for every pair of assemblages.}
 #'  \item{Order.q}{the diversity order of q.} 
 #'  \item{SC}{the target standardized coverage value.}
 #'  \item{Size/mT}{the corresponding sample size.}
@@ -71,26 +69,26 @@
 #'  \item{s.e.}{standard error of standardized estimate.}
 #'  \item{LCL, UCL}{the bootstrap lower and upper confidence limits for the diversity/dissimilarity with a default significance level of 0.95.}
 #'  \item{Diversity}{\code{'TD'} = 'Taxonomic diversity', \code{'PD'} = 'Phylogenetic diversity', \code{'meanPD'} = 'Mean phylogenetic diversity', \code{'PD_AUC'} = 'Phylogenetic diversity (AUC)', \code{'FD_tau'} = 'Functional diversity (given tau)', \code{'FD_AUC'} = 'Functional diversity (AUC)'}
-#'  \item{Reftime}{the reference time for PD; for \code{PDtype = "AUC"}, it represents the upper limit of the reference-time range used for integration.}
+#'  \item{Reftime}{the reference time for PD under \code{PDtype = "PD"} or \code{PDtype = "meanPD"}.}
 #'  \item{Tau}{the threshold of functional distinctiveness between any two species for FD (under \code{FDtype = "tau_value"}).}
 #'  Similar output is obtained for \code{base = "size"}.\cr
 #'  
 #'  
 #' @examples
-#' \donttest{
+#' 
 #' ## (R/E Analysis) Taxonomic diversity for abundance data
-#' # Coverage-based standardized TD estimates and related statistics (not by pairs)
+#' # Coverage-based standardized TD estimates and related statistics
 #' # See Example 1 in the iNEXT.beta3D vignette for details and graphical output.
 #' 
 #' data(Brazil_rainforests)
 #' output_TDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
 #'                               datatype = 'abundance', base = "coverage", nboot = 10)
 #' output_TDc_abun
-#' }
+#'
 #' 
 #'
 #'
-#' # Size-based standardized TD estimates and related statistics (not by pairs)
+#' # Size-based standardized TD estimates and related statistics
 #' 
 #' data(Brazil_rainforests)
 #' output_TDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
@@ -99,52 +97,24 @@
 #'
 #'
 #' 
-#' # Coverage-based standardized TD estimates and related statistics for all pairs of 
-#' # assemblages by user-specified coverage values
-#' # See Example 2 in the iNEXT.beta3D vignette for details.
-#' 
-#' data(Brazil_rainforests)
-#' data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
-#'             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
-#' output_TDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'TD', 
-#'                                      datatype = 'abundance', base = "coverage", nboot = 10,
-#'                                      level = c(0.85, 0.9), by_pair = TRUE)
-#' output_TDc_abun_byuser
-#' 
-#' 
-#' 
-#' # Size-based standardized TD estimates and related statistics for all pairs of 
-#' # assemblages by user-specified sample sizes
-#' 
-#' data(Brazil_rainforests)
-#' data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
-#'             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
-#' output_TDs_abun_byuser = iNEXTbeta3D(data = data, diversity = 'TD', 
-#'                                      datatype = 'abundance', base = "size", nboot = 10,
-#'                                      level = c(300, 500), by_pair = TRUE)
-#' output_TDs_abun_byuser
 #' 
 #' \donttest{
 #' ## (R/E Analysis) Taxonomic diversity for incidence data
 #' # Coverage-based standardized TD estimates and related statistics (not by pairs)
-#' # See Example 3 in the iNEXT.beta3D vignette for details and graphical output.
+#' # See Example 2 in the iNEXT.beta3D vignette for details and graphical output.
 #' 
 #' data(Second_growth_forests)
-#' data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
-#'             "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
-#' output_TDc_inci = iNEXTbeta3D(data = data, diversity = 'TD', 
+#' output_TDc_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
 #'                               datatype = 'incidence_raw', base = "coverage", nboot = 10)
 #' output_TDc_inci
-#' }
+#' 
 #' 
 #' 
 #' 
 #' # Size-based standardized TD estimates and related statistics (not by pairs)
 #' 
 #' data(Second_growth_forests)
-#' data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
-#'             "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
-#' output_TDs_inci = iNEXTbeta3D(data = data, diversity = 'TD', 
+#' output_TDs_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
 #'                               datatype = 'incidence_raw', base = "size", nboot = 10)
 #' output_TDs_inci
 #' 
@@ -153,7 +123,7 @@
 #' 
 #' # Coverage-based standardized TD estimates and related statistics for all pairs of 
 #' # assemblages by user-specified coverage values
-#' # See Example 4 in the iNEXT.beta3D vignette for details.
+#' # See Example 3 in the iNEXT.beta3D vignette for details.
 #' 
 #' data(Second_growth_forests)
 #' output_TDc_inci_byuser = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
@@ -172,64 +142,39 @@
 #' output_TDs_inci_byuser
 #' 
 #' 
-#' \donttest{
+#' }
+#' 
+#' \dontrun{
 #' ## (R/E Analysis) Phylogenetic diversity for abundance data
-#' # Coverage-based standardized PD estimates and related statistics (not by pairs)
-#' # See Example 5 in the iNEXT.beta3D vignette for details and graphical output.
+#' # Coverage-based standardized PD estimates and related statistics 
+#' # See Example 4 in the iNEXT.beta3D vignette for details and graphical output.
 #' 
 #' data(Brazil_rainforests)
 #' data(Brazil_tree)
 #' output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "coverage", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30) 
+#'                               PDtree = Brazil_tree, PDtype = 'AUC', PDcut_number = 30) 
 #' output_PDc_abun
 #' 
 #' 
-#' # Size-based standardized PD estimates and related statistics (not by pairs)
+#' 
+#' 
+#' # Size-based standardized PD estimates and related statistics 
 #' 
 #' data(Brazil_rainforests)
 #' data(Brazil_tree)
 #' output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "size", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30) 
+#'                               PDtree = Brazil_tree, PDtype = 'AUC', PDcut_number = 30) 
 #' output_PDs_abun
 #' 
-#' 
-#' # Coverage-based R/E Analysis for all pairs of assemblages with phylogenetic diversity for abundance data
-#' # See Example 6 in the iNEXT.beta3D vignette for details.
-#' 
-#' data(Brazil_rainforests)
-#' data(Brazil_tree)
-#' 
-#' data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
-#'             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
-#' 
-#' output_PDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'PD',
-#'                                      datatype = 'abundance', base = "coverage", nboot = 10,
-#'                                      level = c(0.85, 0.9), PDtree = Brazil_tree, PDreftime = NULL,
-#'                                      PDtype = 'AUC', PDcut_number = 30, by_pair = TRUE)
-#' output_PDc_abun_byuser
-#' 
-#' # Size-based R/E for all pairs of assemblages with phylogenetic gamma and alpha diversity
-#' 
-#' data(Brazil_rainforests)
-#' data(Brazil_tree)
-#' 
-#' data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
-#'             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
-#' 
-#' output_PDs_abun_byuser = iNEXTbeta3D(data = data, diversity = 'PD',
-#'                                      datatype = 'abundance', base = "size", nboot = 10,
-#'                                      level = c(300, 500), PDtree = Brazil_tree, PDreftime = NULL,
-#'                                     PDtype = 'AUC', PDcut_number = 30, by_pair = TRUE)
-#' output_PDs_abun_byuser
 #' 
 #' 
 #' 
 #' ## (R/E Analysis) Functional diversity for abundance data when all thresholds from 0 to 1 
 #' ## are considered
-#' # Coverage-based standardized FD estimates and related statistics (not by pairs)
-#' # See Example 7 in the iNEXT.beta3D vignette for details and graphical output.
+#' # Coverage-based standardized FD estimates and related statistics 
+#' # See Example 5 in the iNEXT.beta3D vignette for details and graphical output.
 #' 
 #' data(Brazil_rainforests)
 #' data(Brazil_distM)
@@ -239,49 +184,15 @@
 #' output_FDc_abun
 #' 
 #' 
-#' # Size-based standardized FD estimates and related statistics (not by pairs)
+#' 
+#' 
+#' # Size-based standardized FD estimates and related statistics
 #' data(Brazil_rainforests)
 #' data(Brazil_distM)
 #' output_FDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'FD', 
 #'                               datatype = 'abundance', base = "size", nboot = 10, 
 #'                               FDdistM = Brazil_distM, FDtype = 'AUC', FDcut_number = 30)
 #' output_FDs_abun
-#' 
-#' 
-#' 
-#' # Coverage-based R/E Analysis for all pairs of assemblages with functional diversity for abundance data
-#' # See Example 8 in the iNEXT.beta3D vignette for details.
-#' 
-#' data(Brazil_rainforests)
-#' data(Brazil_distM)
-#' 
-#' data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
-#'             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
-#' 
-#' output_FDc_abun_byuser = iNEXTbeta3D(data = data, diversity = 'FD',
-#'                                      datatype = 'abundance', base = "coverage", nboot = 10,
-#'                                      level = c(0.85, 0.9), FDdistM = Brazil_distM,
-#'                                      FDtype = 'AUC', FDcut_number = 30, by_pair = TRUE)
-#' output_FDc_abun_byuser
-#' 
-#' # Size-based R/E for all pairs of assemblages with functional gamma and alpha diversity
-#' 
-#' data(Brazil_rainforests)
-#' data(Brazil_distM)
-#' 
-#' data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
-#'             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
-#' 
-#' output_FDs_abun_byuser = iNEXTbeta3D(data = data, diversity = 'FD',
-#'                                      datatype = 'abundance', base = "size", nboot = 10,
-#'                                     level = c(300, 500), FDdistM = Brazil_distM,
-#'                                     FDtype = 'AUC', FDcut_number = 30, by_pair = TRUE)
-#' output_FDs_abun_byuser
-#' 
-#' 
-#' 
-#' 
-#' 
 #' 
 #' }
 #' 
@@ -744,14 +655,8 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
     
     if (PDtype == "AUC") {
       
-      PD_AUC_max = if (is.null(PDreftime)) {
-        H_max
-      } else {
-        PDreftime
-      }
-      
-      if (PD_AUC_max <= 0) {stop("The maximum reference time for PD-AUC must be greater than 0.", call. = FALSE)}
-      
+      PD_AUC_max = H_max
+
       PDcut = seq(from = 1e-08,to = PD_AUC_max,length.out = PDcut_number)
       
       PDwidth = diff(PDcut)
@@ -1264,7 +1169,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
           
           if (datatype == "abundance") {
             tree_bt = PDtree
-            bootstrap_population = iNEXT.beta3D:::bootstrap_population_multiple_assemblage(data, 
+            bootstrap_population = bootstrap_population_multiple_assemblage(data, 
                                                                                            data_gamma, "abundance")
             p_bt = bootstrap_population
             unseen_p = p_bt[-(1:nrow(data)), ] %>% matrix(ncol = ncol(data))
@@ -1363,9 +1268,9 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
               as.vector
             bootstrap_data_alpha = bootstrap_data_alpha[bootstrap_data_alpha > 
                                                           0]
-            m_gamma = sapply(level, function(i) iNEXT.beta3D:::coverage_to_size(bootstrap_data_gamma, 
+            m_gamma = sapply(level, function(i) coverage_to_size(bootstrap_data_gamma, 
                                                                                 i, datatype = "abundance"))
-            m_alpha = sapply(level, function(i) iNEXT.beta3D:::coverage_to_size(bootstrap_data_alpha, 
+            m_alpha = sapply(level, function(i) coverage_to_size(bootstrap_data_alpha, 
                                                                                 i, datatype = "abundance"))
             
             
@@ -1418,7 +1323,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
           }
           if (datatype == "incidence_raw") {
             tree_bt = PDtree
-            bootstrap_population = iNEXT.beta3D:::bootstrap_population_multiple_assemblage(data_2D, 
+            bootstrap_population = bootstrap_population_multiple_assemblage(data_2D, 
                                                                                            data_gamma_freq, "incidence")
             p_bt = bootstrap_population
             unseen_p = p_bt[-(1:nrow(data[[1]])), ] %>% 
@@ -1528,9 +1433,9 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
                                                                     0]
             bootstrap_data_alpha_freq = bootstrap_data_alpha_freq[bootstrap_data_alpha_freq > 
                                                                     0]
-            m_gamma = sapply(level, function(i) iNEXT.beta3D:::coverage_to_size(bootstrap_data_gamma_freq, 
+            m_gamma = sapply(level, function(i) coverage_to_size(bootstrap_data_gamma_freq, 
                                                                                 i, datatype = "incidence_freq"))
-            m_alpha = sapply(level, function(i) iNEXT.beta3D:::coverage_to_size(bootstrap_data_alpha_freq, 
+            m_alpha = sapply(level, function(i) coverage_to_size(bootstrap_data_alpha_freq, 
                                                                                 i, datatype = "incidence_freq"))
             
             
@@ -2315,7 +2220,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
       
     }
     
-    if (diversity == "PD") {
+    if (diversity == "PD" & PDtype %in% c("PD", "meanPD")) {
       
       gamma = gamma %>% mutate(Reftime = reft)
       
@@ -3683,7 +3588,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
       alpha = alpha %>% rename("mT" = "Size")
     }
     
-    if (diversity == "PD") {
+    if (diversity == "PD" & PDtype %in% c("PD", "meanPD")) {
       
       gamma = gamma %>% mutate(Reftime = reft)
       
@@ -3818,41 +3723,36 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
 #' 
 #' ggiNEXTbeta3D(output_TDs_abun)
 #' 
-#' \donttest{
+#' \dontrun{
 #' ## (Graphic Display) Taxonomic diversity for incidence data
 #' # Coverage-based rarefaction and extrapolation sampling curves 
-#' # See Example 3 in the iNEXT.beta3D vignette for details.
+#' # See Example 2 in the iNEXT.beta3D vignette for details.
 #' 
 #' data(Second_growth_forests)
-#' data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
-#'             "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
-#' output_TDc_inci = iNEXTbeta3D(data = data, diversity = 'TD', 
+#' output_TDc_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
 #'                               datatype = 'incidence_raw', base = "coverage", nboot = 10)
 #' 
 #' ggiNEXTbeta3D(output_TDc_inci, type = 'B')
 #' ggiNEXTbeta3D(output_TDc_inci, type = 'D')
-#' }
+#' 
 #' 
 #' # Size-based rarefaction and extrapolation sampling curves 
 #' 
 #' data(Second_growth_forests)
-#' data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
-#'             "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
-#' output_TDs_inci = iNEXTbeta3D(data = data, diversity = 'TD', 
+#' output_TDs_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
 #'                               datatype = 'incidence_raw', base = "size", nboot = 10)
 #' 
 #' ggiNEXTbeta3D(output_TDs_inci)
 #' 
-#' \donttest{
 #' ## (Graphic Display) Phylogenetic diversity for abundance data
 #' # Coverage-based rarefaction and extrapolation sampling curves 
-#' # See Example 5 in the iNEXT.beta3D vignette for details.
+#' # See Example 4 in the iNEXT.beta3D vignette for details.
 #' 
 #' data(Brazil_rainforests)
 #' data(Brazil_tree)
 #' output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "coverage", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30) 
+#'                               PDtree = Brazil_tree, PDtype = 'AUC', PDcut_number = 30) 
 #' 
 #' ggiNEXTbeta3D(output_PDc_abun, type = 'B')
 #' ggiNEXTbeta3D(output_PDc_abun, type = 'D')
@@ -3864,7 +3764,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
 #' data(Brazil_tree)
 #' output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
 #'                               datatype = 'abundance', base = "size", nboot = 10, 
-#'                               PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'AUC', PDcut_number = 30) 
+#'                               PDtree = Brazil_tree, PDtype = 'AUC', PDcut_number = 30) 
 #' 
 #' ggiNEXTbeta3D(output_PDs_abun)
 #' 
@@ -3872,7 +3772,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
 #' ## (Graphic Display) Functional diversity for abundance data when all threshold levels 
 #' ## from 0 to 1 are considered
 #' # Coverage-based rarefaction and extrapolation sampling curves 
-#' # See Example 7 in the iNEXT.beta3D vignette for details.
+#' # See Example 5 in the iNEXT.beta3D vignette for details.
 #' 
 #' data(Brazil_rainforests)
 #' data(Brazil_distM)
@@ -4613,59 +4513,51 @@ ggplotColors <- function(g){
 #' (b) For \code{datatype = "incidence_raw"}, data for a single dataset with N assemblages can be input as a \code{list} of \code{matrices/data.frames}, with each matrix representing a species-by-sampling-unit incidence matrix for one of the assemblages; data for multiple datasets can be input as multiple lists.
 #' @param diversity selection of diversity type: \code{'TD'} = Taxonomic diversity, \code{'PD'} = Phylogenetic diversity, and \code{'FD'} = Functional diversity.
 #' @param datatype data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).
-#' @param PDtree (required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format for all observed species in the pooled assemblage. 
-#' @param PDreftime (argument only for \code{diversity = "PD"}), a numerical value specifying reference time for PD. Default is \code{PDreftime = NULL} (i.e., the age of the root of \code{PDtree}).
+#' @param PDtree (required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format spanned by all observed species across the input datasets.
+#' @param PDreftime (argument only for \code{diversity = "PD"} and \code{PDtype = "meanPD"}), a numerical value specifying a fixed time reference point for phylogenetic diversity. Default is \code{PDreftime = NULL}, in which case the age of the root of the phylogenetic tree spanned by the pooled observed species is used.
+#' @param PDtype (argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "meanPD"} for mean phylogenetic diversity, or \code{PDtype = "AUC"} for an overall measure that integrates mean phylogenetic diversity over all time reference points from zero to the age of the root. Default is \code{PDtype = "meanPD"}.
 #' @param FDdistM (required argument for \code{diversity = "FD"}), a species pairwise distance matrix for all species in the pooled assemblage. 
 #' @param FDtype (argument only for \code{diversity = "FD"}), select FD type: \code{FDtype = "tau_value"} for FD under a specified threshold value, or \code{FDtype = "AUC"} (area under the curve of tau-profile) for an overall FD which integrates all threshold values between zero and one. Default is \code{FDtype = "AUC"}.  
 #' @param FDtau (argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}), a numerical value between 0 and
 #'  1 specifying the tau value (threshold level) that will be used to compute FD. If \code{FDtau = NULL} (default), 
 #'  then threshold level is set to be the mean distance between any two individuals randomly selected from the pooled 
 #'  dataset (i.e., quadratic entropy). 
-#' @param by_pair a logical variable specifying whether to perform diversity decomposition for all pairs of assemblages or not. If \code{by_pair = TRUE}, alpha/beta/gamma diversity will be computed for all pairs of assemblages in the input data; if \code{by_pair = FALSE}, alpha/beta/gamma diversity will be computed for multiple assemblages (i.e, more than two assemblages) in the input data. Default is \code{FALSE}. 
+#' @param by_pair a logical variable specifying whether diversity decomposition is performed for all assemblages as a whole or for every pair of assemblages. If \code{by_pair = FALSE}, alpha/beta/gamma diversity and dissimilarity are computed for all assemblages within each dataset as a whole; if \code{by_pair = TRUE}, the corresponding output is computed for every pair of assemblages. Default is \code{FALSE}.
 #' 
 #' @return a data.frame including basic data information.\cr\cr 
-#' For abundance data, basic information shared by TD, mean-PD and FD
-#'  includes dataset name (\code{Dataset}), combinations of assemblage pairs (\code{Pair}, if calculating not by pairs, then there is no such column), 
-#'  individual/pooled/joint assemblage (\code{Assemblage}),
-#' sample size (\code{n}), observed species richness (\code{S.obs}), sample coverage estimates of the reference sample (\code{SC(n)}), 
+#' For abundance data, basic information shared by TD, PD and FD includes dataset name (\code{Dataset}), combinations of assemblage pairs (\code{Pair}, included only when the analysis is performed for every pair of assemblages),
+#' individual/pooled/joint assemblage (\code{Assemblage}), sample size (\code{n}), observed species richness (\code{S.obs}), sample coverage estimate of the reference sample (\code{SC(n)}), 
 #' sample coverage estimate for twice the reference sample size (\code{SC(2n)}). Other additional information is given below.\cr\cr
 #' (1) TD: the first five species abundance frequency counts in the reference sample (\code{f1}--\code{f5}).\cr\cr
-#' (2) mean-PD: the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
+#' (2) PD (\code{PDtype = "meanPD"}): the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
 #' the number of singletons (\code{f1*}) and doubletons (\code{f2*}) in the node/branch abundance set, as well as the total branch length 
 #' of those singletons (\code{g1}) and of those doubletons (\code{g2}), and the reference time (\code{Reftime}).\cr\cr
-#' (3) FD (\code{FDtype = "AUC"}): the minimum distance (\code{dmin}) and the maximum distance (\code{dmax}) among all non-diagonal elements in the distance matrix, 
+#' (3) PD (\code{PDtype = "AUC"}): the minimum time reference point (\code{Tree.depth.min}) and the maximum time reference point
+#' (\code{Tree.depth.max}) used for calculating the integrated mean phylogenetic diversity. The minimum time reference point is zero,
+#' and the maximum time reference point is the age of the root of the phylogenetic tree spanned by the pooled observed species.\cr\cr
+#' (4) FD (\code{FDtype = "AUC"}): the minimum distance (\code{dmin}) and the maximum distance (\code{dmax}) among all non-diagonal elements in the distance matrix, 
 #' and the mean distance between any two individuals randomly selected from the dataset (\code{dmean}).\cr\cr
-#' (4) FD (\code{FDtype = "tau_value"}): the number of singletons (\code{a1*}) and of doubletons (\code{a2*}) among the functionally indistinct
+#' (5) FD (\code{FDtype = "tau_value"}): the number of singletons (\code{a1*}) and of doubletons (\code{a2*}) among the functionally indistinct
 #'  set at the specified threshold level \code{'Tau'}, as well as the total contribution of singletons (\code{h1}) and of doubletons (\code{h2})
 #'   at the specified threshold level \code{'Tau'}.\cr\cr
 #'  
-#'  For incidence data, the basic information for TD includes dataset name (\code{Dataset}), combinations of assemblage pairs (\code{Pair}, if calculating not by pairs, then there is no such column), 
-#'  individual/pooled/joint assemblage (\code{Assemblage}), number of sampling units (\code{T}), total number of incidences (\code{U}), observed species richness (\code{S.obs}), 
-#'  sample coverage estimates of the reference sample (\code{SC(T)}), sample coverage estimate for twice the reference sample size
-#'  (\code{SC(2T)}), as well as the first five species incidence frequency counts (\code{Q1}--\code{Q5}) in the reference sample. For mean-PD and FD, output is similar to that
+#' For incidence data, the basic information for TD includes dataset name (\code{Dataset}), combinations of assemblage pairs (\code{Pair}, included only when the analysis is performed for every pair of assemblages),
+#' individual/pooled/joint assemblage (\code{Assemblage}), number of sampling units (\code{T}), total number of incidences (\code{U}), observed species richness (\code{S.obs}), sample coverage estimate of the reference sample (\code{SC(T)}), sample coverage estimate for twice the reference sample size
+#'  (\code{SC(2T)}), as well as the first five species incidence frequency counts (\code{Q1}--\code{Q5}) in the reference sample. For PD and FD, output is similar to that
 #'  for abundance data.   
 #' 
 #' @examples
-#' ## (Data Information) Taxonomic diversity for abundance data (not by pairs)
+#' ## (Data Information) Taxonomic diversity for abundance data
 #' data(Brazil_rainforests)
 #' info_TD_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
 #'                               datatype = 'abundance')
 #' info_TD_abun
 #' 
 #' 
-#' ## (Data Information) Taxonomic diversity for abundance data for all pairs of assemblages
-#' data = list("Edge"     = sapply(Brazil_rainforests, function(x) x[,1]),
-#'             "Interior" = sapply(Brazil_rainforests, function(x) x[,2]))
-#' info_TD_abun_pair = DataInfobeta3D(data = data, diversity = 'TD', datatype = 'abundance',
-#'                                    by_pair = TRUE)
-#' info_TD_abun_pair
-#' 
 #' 
 #' ## (Data Information) Taxonomic diversity for incidence data (not by pairs)
 #' data(Second_growth_forests)
-#' data = list("CR 2005 vs. 2017" = Second_growth_forests[[1]][c(1,3)],
-#'             "JE 2005 vs. 2017" = Second_growth_forests[[2]][c(1,3)])
-#' info_TD_inci = DataInfobeta3D(data = data, diversity = 'TD',
+#' info_TD_inci = DataInfobeta3D(data = Second_growth_forests, diversity = 'TD',
 #'                               datatype = 'incidence_raw')
 #' info_TD_inci
 #' 
@@ -4677,16 +4569,23 @@ ggplotColors <- function(g){
 #' info_TD_inci_pair
 #' 
 #' \donttest{
-#' ## (Data Information) Mean phylogenetic diversity for abundance data (not by pairs)
+#' ## (Data Information) Mean phylogenetic diversity for abundance data 
 #' data(Brazil_rainforests)
 #' data(Brazil_tree)
-#' info_PD_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
-#'                               datatype = 'abundance', PDtree = Brazil_tree, PDreftime = NULL)
-#' info_PD_abun
-#' }
+#' info_meanPD_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
+#'                                   datatype = 'abundance', PDtype = 'meanPD', PDtree = Brazil_tree,
+#'                                   PDreftime = NULL)
+#' info_meanPD_abun
+#' 
+#' ## (Data Information) Phylogenetic diversity (AUC) for abundance data 
+#' data(Brazil_rainforests)
+#' data(Brazil_tree)
+#' info_PDAUC_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', 
+#'                                   datatype = 'abundance', PDtype = 'AUC',
+#'                                   PDtree = Brazil_tree)
+#' info_PDAUC_abun 
 #' 
 #' ## (Data Information) Functional diversity for abundance data under a specified threshold level
-#' ## (not by pairs)
 #' data(Brazil_rainforests)
 #' data(Brazil_distM)
 #' info_FDtau_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'FD', 
@@ -4696,20 +4595,19 @@ ggplotColors <- function(g){
 #' 
 #' 
 #' ## (Data Information) Functional diversity for abundance data when all threshold levels
-#' ## from 0 to 1 are considered (not by pairs)
 #' data(Brazil_rainforests)
 #' data(Brazil_distM)
 #' info_FDAUC_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'FD', 
 #'                                  datatype = 'abundance', FDdistM = Brazil_distM, FDtype = 'AUC')
 #' info_FDAUC_abun
-#' 
+#' }
 #' 
 #' @export
 DataInfobeta3D = function(data, diversity = 'TD', datatype = 'abundance', 
-                          PDtree = NULL, PDreftime = NULL, FDdistM = NULL, FDtype = 'AUC', FDtau = NULL,
+                          PDtype = 'meanPD', PDtree = NULL, PDreftime = NULL,
+                          FDdistM = NULL, FDtype = 'AUC', FDtau = NULL,
                           by_pair = FALSE) {
   
-  ## Check parameter setting
   if (is.na(pmatch(diversity, c("TD", "PD", "FD")))) stop("invalid diversity")
   
   if (datatype == "incidence" | datatype == "incidence_freq") stop('Please try datatype = "incidence_raw".')  
@@ -4721,6 +4619,10 @@ DataInfobeta3D = function(data, diversity = 'TD', datatype = 'abundance',
   if (length(PDreftime) > 1)
     stop("PDreftime can only accept a value instead of a vector.", call. = FALSE)
   
+  if(is.na(pmatch(PDtype, c("meanPD", "AUC"))))
+    stop("Incorrect phylogenetic diversity type. Please use 'meanPD' or 'AUC'.",
+         call. = FALSE)
+  
   if (FDtype == "tau_values") stop('Please try FDtype = "tau_value".')  
   if(is.na(pmatch(FDtype, c("AUC", "tau_value"))))
     stop("Incorrect type of functional diversity type, please use either 'AUC' or 'tau_value'", call. = FALSE)
@@ -4729,8 +4631,6 @@ DataInfobeta3D = function(data, diversity = 'TD', datatype = 'abundance',
     stop("invalid class of tau value, FDtau should be a postive value between zero and one.", call. = FALSE)
   if (length(FDtau) > 1)
     stop("FDtau only accept a value instead of a vector.", call. = FALSE)
-  
-  ##
   
   
   if (datatype == 'abundance') {
@@ -4810,6 +4710,70 @@ DataInfobeta3D = function(data, diversity = 'TD', datatype = 'abundance',
     
     if (sum(pool.name %in% PDtree$tip.label) != length(pool.name))
       stop("Data and tree tip label contain unmatched species", call. = FALSE)
+    
+    
+    if (datatype == "abundance") {
+      
+      pool.data = lapply(data, rowSums)
+      
+      pool.data = lapply(pool.data, function(x) {
+        data.frame(value = x) %>%
+          rownames_to_column(var = "Species")
+      })
+      
+      pdata = pool.data[[1]]
+      
+      if (length(pool.data) > 1) {
+        for (i in 2:length(pool.data)) {
+          pdata = full_join(pdata, pool.data[[i]], by = "Species")
+        }
+      }
+      
+      pdata[is.na(pdata)] = 0
+      
+      pdata = pdata %>%
+        column_to_rownames(var = "Species") %>%
+        rowSums()
+    }
+    
+    
+    if (datatype == "incidence_raw") {
+      
+      pool.data = lapply(data, function(x) {
+        tmp = Reduce("+", x)
+        tmp[tmp > 1] = 1
+        rowSums(tmp)
+      })
+      
+      pool.data = lapply(pool.data, function(x) {
+        data.frame(value = x) %>%
+          rownames_to_column(var = "Species")
+      })
+      
+      pdata = pool.data[[1]]
+      
+      if (length(pool.data) > 1) {
+        for (i in 2:length(pool.data)) {
+          pdata = full_join(pdata, pool.data[[i]], by = "Species")
+        }
+      }
+      
+      pdata[is.na(pdata)] = 0
+      
+      pdata = pdata %>%
+        column_to_rownames(var = "Species") %>%
+        rowSums()
+    }
+    
+    
+    pool.name = names(pdata[pdata > 0])
+    
+    tip = PDtree$tip.label[-match(pool.name, PDtree$tip.label)]
+    
+    mytree = ape::drop.tip(PDtree, tip)
+    
+    H_max = max(ape::node.depth.edgelength(mytree))
+    
   }
   
   if (diversity == "FD") {
@@ -4823,8 +4787,6 @@ DataInfobeta3D = function(data, diversity = 'TD', datatype = 'abundance',
     if (sum(pool.name %in% rownames(FDdistM)) != length(pool.name))
       stop("Data and distance matrix contain unmatched species", call. = FALSE)
   }
-  ##
-  
   
   if (diversity == "TD") {
     
@@ -4914,9 +4876,9 @@ DataInfobeta3D = function(data, diversity = 'TD', datatype = 'abundance',
     
   }
   
-  if (diversity == "PD") {
+  if (diversity == "PD" & PDtype == "meanPD") {
     
-    if(is.null(PDreftime)) PDreftime = get.rooted.tree.height(PDtree) else if (PDreftime <= 0) { 
+    if(is.null(PDreftime)) PDreftime = H_max else if (PDreftime <= 0) { 
       stop("Reference time must be greater than 0. Use NULL to set it to pooled tree height.", call. = FALSE)
       }
     
@@ -5172,6 +5134,155 @@ DataInfobeta3D = function(data, diversity = 'TD', datatype = 'abundance',
     rownames(output) = NULL
   }
   
+  if (diversity == "PD" & PDtype == "AUC") {
+    
+
+    PDreftime = H_max
+
+    
+    
+    if (datatype == "abundance") {
+      
+      output = lapply(1:length(data), function(i) {
+        
+        x = data[[i]]
+        
+        if (is.null(colnames(x)))colnames(x) = paste("Assemblage_", 1:ncol(x), sep = "")
+        
+        single = DataInfo3D(x, datatype = "abundance")
+        single = single[, c("Assemblage","n","S.obs","SC(n)","SC(2n)")]
+        
+        single$Tree.depth.min = 0
+        single$Tree.depth.max = PDreftime
+        
+        if (by_pair == FALSE) {
+          
+          multiple = DataInfo3D(list("Pooled assemblage" = rowSums(x), "Joint assemblage" = as.vector(x)), datatype = "abundance")
+          
+          multiple = multiple[, c("Assemblage","n","S.obs","SC(n)","SC(2n)")]
+          
+          multiple$Tree.depth.min = 0
+          multiple$Tree.depth.max = PDreftime
+          
+        } else {
+          
+          two_idx = combn(1:ncol(x), 2)
+          
+          multiple = lapply(1:ncol(two_idx), function(j) {
+            
+            xx = x[, two_idx[, j], drop = FALSE]
+            
+            ab_name = colnames(xx)
+            
+            tmp = DataInfo3D(list("Pooled assemblage" = rowSums(xx), "Joint assemblage" = as.vector(xx)), datatype = "abundance")
+            
+            tmp = tmp[, c("Assemblage","n","S.obs","SC(n)","SC(2n)")]
+            
+            tmp$Tree.depth.min = 0
+            tmp$Tree.depth.max = PDreftime
+            
+            tmp = cbind(Pair = paste(ab_name[1], ab_name[2], sep = " vs. "), tmp)
+            
+            return(tmp)
+            
+          }) %>% do.call(rbind, .)
+          
+          single = cbind(Pair = "", single)
+        }
+        
+        
+        out = rbind(single, multiple) %>%
+          cbind(Dataset = names(data)[i], .)
+        
+        return(out)
+        
+      }) %>% do.call(rbind, .)
+    }
+    
+    
+
+    if (datatype == "incidence_raw") {
+      
+      output = lapply(1:length(data), function(i) {
+        
+        x = lapply(data[[i]], as.matrix)
+        
+        if (is.null(names(x))) {
+          names(x) = paste("Assemblage_", 1:length(x), sep = "")
+        }
+        
+        single = DataInfo3D(x, datatype = "incidence_raw")
+        
+        single = single[, c("Assemblage", "T", "U", "S.obs", "SC(T)", "SC(2T)")]
+        
+        single$Tree.depth.min = 0
+        single$Tree.depth.max = PDreftime
+        
+        
+        ## Multiple assemblages
+        if (by_pair == FALSE) {
+          
+          data_gamma = Reduce("+", x)
+          data_gamma[data_gamma > 1] = 1
+          
+          data_alpha = do.call(rbind, x)
+          
+          multiple = DataInfo3D(
+            list("Pooled assemblage" =c(ncol(data_gamma), as.vector(rowSums(data_gamma))),
+                 "Joint assemblage" = c(ncol(data_alpha), as.vector(rowSums(data_alpha)))),
+                  datatype = "incidence_freq")
+          
+          multiple = multiple[, c("Assemblage", "T", "U", "S.obs", "SC(T)", "SC(2T)")]
+          
+          multiple$Tree.depth.min = 0
+          multiple$Tree.depth.max = PDreftime
+          
+        } else {
+          
+          two_idx = combn(1:length(x), 2)
+          
+          multiple = lapply(1:ncol(two_idx), function(j) {
+            
+            xx = x[two_idx[, j]]
+            
+            ab_name = names(xx)
+            
+            data_gamma = Reduce("+", xx)
+            data_gamma[data_gamma > 1] = 1
+            
+            data_alpha = do.call(rbind, xx)
+            
+            tmp = DataInfo3D(
+              list("Pooled assemblage" = c(ncol(data_gamma), as.vector(rowSums(data_gamma))),
+                   "Joint assemblage" = c(ncol(data_alpha), as.vector(rowSums(data_alpha)))),
+                    datatype = "incidence_freq")
+            
+            tmp = tmp[, c("Assemblage", "T", "U", "S.obs", "SC(T)", "SC(2T)")]
+            
+            tmp$Tree.depth.min = 0
+            tmp$Tree.depth.max = PDreftime
+            
+            tmp = cbind(Pair = paste(ab_name[1], ab_name[2], sep = " vs. "), tmp)
+            
+            return(tmp)
+            
+          }) %>% do.call(rbind, .)
+          
+          single = cbind(Pair = "", single)
+        }
+        
+        out = rbind(single, multiple) %>%
+          cbind(Dataset = names(data)[i], .)
+        
+        return(out)
+        
+      }) %>% do.call(rbind, .)
+    }
+    
+    
+    rownames(output) = NULL
+  }
+    
   if (diversity == "FD" & FDtype == "tau_value") {
     
     FDdistM = as.matrix(FDdistM)
