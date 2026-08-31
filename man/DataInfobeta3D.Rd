@@ -49,7 +49,7 @@ individual/pooled/joint assemblage (\code{Assemblage}), sample size (\code{n}), 
 sample coverage estimate for twice the reference sample size (\code{SC(2n)}). Other additional information is given below.\cr\cr
 (1) TD: the first five species abundance frequency counts in the reference sample (\code{f1}--\code{f5}).\cr\cr
 (2) PD (\code{PDtype = "meanPD"}): the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
-the number of singletons (\code{f1*}) and doubletons (\code{f2*}) in the node/branch abundance set, as well as the total branch length 
+the number of singletons (\code{f1*}) and doubletons (\code{f2*}) in  the node/branch abundance set, as well as the total branch length 
 of those singletons (\code{g1}) and of those doubletons (\code{g2}), and the reference time (\code{Reftime}).\cr\cr
 (3) PD (\code{PDtype = "AUC"}): the minimum time reference point (\code{Tree.depth.min}) and the maximum time reference point
 (\code{Tree.depth.max}) used for calculating the integrated mean phylogenetic diversity. The minimum time reference point is zero,
@@ -73,20 +73,20 @@ individual/pooled/joint assemblage (\code{Assemblage}), number of sampling units
 \examples{
 ## (Data Information) Taxonomic diversity for abundance data
 data(Brazil_rainforests)
-info_TD_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'TD', 
+info_TD_abun = DataInfobeta3D(data = Brazil_rainforests[1 :2], diversity = 'TD', 
                               datatype = 'abundance')
 info_TD_abun
 
 
 
-## (Data Information) Taxonomic diversity for incidence data (not by pairs)
+## (Data Information) Taxonomic diversity for incidence data (all assemblages as a whole)
 data(Second_growth_forests)
 info_TD_inci = DataInfobeta3D(data = Second_growth_forests, diversity = 'TD',
                               datatype = 'incidence_raw')
 info_TD_inci
 
 
-## (Data Information) Taxonomic diversity for incidence data for all pairs of assemblages
+## (Data Information) Taxonomic diversity for incidence data for every pair of assemblages
 data(Second_growth_forests)
 info_TD_inci_pair = DataInfobeta3D(data = Second_growth_forests, diversity = 'TD',
                                    datatype = 'incidence_raw', by_pair = TRUE)
@@ -116,7 +116,6 @@ info_FDtau_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'FD
                                  datatype = 'abundance', FDdistM = Brazil_distM, 
                                  FDtype = 'tau_value', FDtau = NULL)
 info_FDtau_abun
-
 
 ## (Data Information) Functional diversity for abundance data when all threshold levels
 data(Brazil_rainforests)

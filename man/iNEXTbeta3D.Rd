@@ -123,7 +123,7 @@ output_TDs_abun
 
 \donttest{
 ## (R/E Analysis) Taxonomic diversity for incidence data
-# Coverage-based standardized TD estimates and related statistics (not by pairs)
+# Coverage-based standardized TD estimates and related statistics (all assemblages as a whole)
 # See Example 2 in the iNEXT.beta3D vignette for details and graphical output.
 
 data(Second_growth_forests)
@@ -134,7 +134,7 @@ output_TDc_inci
 
 
 
-# Size-based standardized TD estimates and related statistics (not by pairs)
+# Size-based standardized TD estimates and related statistics (all assemblages as a whole)
 
 data(Second_growth_forests)
 output_TDs_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
@@ -144,7 +144,7 @@ output_TDs_inci
 
 
 
-# Coverage-based standardized TD estimates and related statistics for all pairs of 
+# Coverage-based standardized TD estimates and related statistics for every pair of 
 # assemblages by user-specified coverage values
 # See Example 3 in the iNEXT.beta3D vignette for details.
 
@@ -155,7 +155,7 @@ output_TDc_inci_byuser = iNEXTbeta3D(data = Second_growth_forests, diversity = '
 output_TDc_inci_byuser
 
 
-# Size-based standardized TD estimates and related statistics for all pairs of 
+# Size-based standardized TD estimates and related statistics for every pair of 
 # assemblages by user-specified sample sizes
 
 data(Second_growth_forests)

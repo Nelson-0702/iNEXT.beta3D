@@ -23,7 +23,7 @@ library(iNEXT.beta3D)
 ```
 
 
-<!-- <font color=#FF6781>The Latest Update in Nov. 2024: In earlier versions, diversity decomposition (alpha, beta, gamma, and dissimilarity) was performed only for all assemblages of datasets. In the updated version, we have added a logical argument "by_pair" in the main function "iNEXTbeta3D" to specify whether diversity decomposition will be performed for pairs of assemblages or not. If "by_pair = TRUE", alpha/beta/gamma diversity or dissimilarity will be computed for all pairs of assemblages in the input data; if "by_pair = FALSE", alpha/beta/gamma diversity or dissimilarity will be computed for K assemblages (i.e., K can be greater than two) when data for K assemblages are provided in the input data. Default is "by_pair = FALSE". In addition, we have added an AUC-based phylogenetic diversity measure ("PDtype = AUC"), which integrates mean phylogenetic diversity over phylogenetic tree depth. The default setting for phylogenetic diversity is now "PDtype = AUC".</font> -->
+<!-- <font color=#FF6781>The Latest Update in Nov. 2024: In earlier versions, diversity decomposition (alpha, beta, gamma, and dissimilarity) was performed only for all assemblages of datasets. In the updated version, we have added a logical argument "by_pair" in the main function "iNEXTbeta3D" to specify whether diversity decomposition will be performed for pairs of assemblages or not. If "by_pair = TRUE", alpha/beta/gamma diversity or dissimilarity will be computed for every pair of assemblages in the input data; if "by_pair = FALSE", alpha/beta/gamma diversity or dissimilarity will be computed for K assemblages (i.e., K can be greater than two) when data for K assemblages are provided in the input data. Default is "by_pair = FALSE". In addition, we have added an AUC-based phylogenetic diversity measure ("PDtype = AUC"), which integrates mean phylogenetic diversity over phylogenetic tree depth. The default setting for phylogenetic diversity is now "PDtype = AUC".</font> -->
 
 
 The package `iNEXT.beta3D` (iNterpolation and EXTrapolation with beta diversity for three dimensions of biodiversity) is a sequel to `iNEXT.` The three dimensions (3D) of biodiversity include <font color=#FF6781>taxonomic diversity (TD)</font>, <font color=#FF6781>phylogenetic diversity (PD)</font> and <font color=#FF6781>functional diversity (FD)</font>. This document provides an introduction demonstrating how to run `iNEXT.beta3D`. An online version [iNEXT.beta3D Online](https://chao.shinyapps.io/iNEXT_beta3D/) is also available for users without an R background.
@@ -451,14 +451,14 @@ ggiNEXTbeta3D(output_TDs_abun)
 ```
 
 
-### EXAMPLE 2: Incidence data with default sample sizes or coverage values (not by pairs)
+### EXAMPLE 2: Incidence data with default sample sizes or coverage values (all assemblages as a whole)
 
 We can also use incidence raw data (`Second_growth_forests`) to compute coverage-based standardized gamma, alpha, beta diversity, and four dissimilarities under `base = 'coverage'`, and also size-based standardized gamma and alpha diversity. Run the following code to perform incidence data analysis. The output data frame is similar to that based on abundance data and thus is omitted.  
 
 
 ```{r eval=FALSE}
 
-## Coverage-based R/E Analysis with taxonomic diversity for incidence raw data (not by pairs)
+## Coverage-based R/E Analysis with taxonomic diversity for incidence raw data (all assemblages as a whole)
 data(Second_growth_forests)
 
 output_TDc_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
@@ -507,7 +507,7 @@ The following commands return the size-based R/E sampling curves for gamma and a
 
 ```{r, fig.align='center', fig.height=5, fig.width=6}
 
-## Size-based R/E curves with taxonomic gamma and alpha diversity (not by pairs)
+## Size-based R/E curves with taxonomic gamma and alpha diversity (all assemblages as a whole)
 data(Second_growth_forests)
 
 output_TDs_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
@@ -518,13 +518,13 @@ ggiNEXTbeta3D(output_TDs_inci)
 ```
 
 
-### EXAMPLE 3: Incidence data for all pairs of assemblages with user-specified sample sizes or coverage values
+### EXAMPLE 3: Incidence data for every pair of assemblages with user-specified sample sizes or coverage values
 
-As with abundance data, user can also specify sample sizes (i.e. number of sampling units) or coverage values to obtain the pertinent output for all pairs of assemblages. The code for examples is given below with two user-specified levels of sample coverage values (e.g., 90% and 95%), but the output is omitted.
+As with abundance data, user can also specify sample sizes (i.e. number of sampling units) or coverage values to obtain the pertinent output for every pair of assemblages. The code for examples is given below with two user-specified levels of sample coverage values (e.g., 90% and 95%), but the output is omitted.
 
 ```{r eval=FALSE}
 
-## Coverage-based R/E Analysis for all pairs of assemblages with taxonomic diversity for incidence data
+## Coverage-based R/E Analysis for every pair of assemblages with taxonomic diversity for incidence data
 data(Second_growth_forests)
 
 output_TDc_inci_byuser = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
@@ -535,11 +535,11 @@ output_TDc_inci_byuser
 ```
 
 
-The following commands return the TD estimates for all pairs of assemblages with two user-specified levels of sample sizes (e.g., 100 and 200).
+The following commands return the TD estimates for every pair of assemblages with two user-specified levels of sample sizes (e.g., 100 and 200).
 
 ```{r eval=FALSE}
 
-## Size-based R/E for all pairs of assemblages with taxonomic gamma and alpha diversity
+## Size-based R/E for every pair of assemblages with taxonomic gamma and alpha diversity
 data(Second_growth_forests)
 
 output_TDs_inci_byuser = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
@@ -711,7 +711,7 @@ Output description:
 
 - `Dataset` = the input datasets. 
 
-- `Pair` = combinations of assemblage pairs (if calculating not by pairs, then there is no such column). 
+- `Pair` = combinations of assemblage pairs; this column is included only when the analysis is performed for every pair of assemblages. 
 
 - `Assemblage` = Individual assemblages, `'Pooled assemblage'` (for gamma) or `'Joint assemblage'` (for alpha). 
 
@@ -763,7 +763,7 @@ Information description:
 
 ```{r eval=FALSE}
 
-## Data information for phylogenetic diversity when all tree-depth values are considered
+## Data information for phylogenetic diversity when all time reference points are considered
 data(Brazil_rainforests)
 data(Brazil_tree)
 
@@ -777,7 +777,7 @@ DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD',
 
 ```{r echo=FALSE}
 
-## Data information for phylogenetic diversity when all tree-depth values are considered
+## Data information for phylogenetic diversity when all time reference points are considered
 data(Brazil_rainforests)
 data(Brazil_tree)
 
@@ -885,7 +885,7 @@ Information description:
 
 - `Dataset` =  the input datasets. 
 
-- `Pair` = combinations of assemblage pairs (if calculating not by pairs, then there is no such column). 
+- `Pair` = combinations of assemblage pairs; this column is included only when the analysis is performed for every pair of assemblages. 
 
 - `Assemblage` = Individual assemblages, `'Pooled assemblage'` (for gamma) or `'Joint assemblage'` (for alpha). 
 
@@ -903,7 +903,7 @@ Information description:
 
 
 ```{r eval=FALSE}
-## Data information for taxonomic diversity for all pairs of assemblages (incidence data)
+## Data information for taxonomic diversity for every pair of assemblages (incidence data)
 data(Second_growth_forests)
 
 # data = Second_growth_forests
@@ -913,7 +913,7 @@ DataInfobeta3D(data = Second_growth_forests, diversity = 'TD', datatype = 'incid
 ```
 
 ```{r echo=FALSE}
-## Data information for taxonomic diversity for all pairs of assemblages (incidence data)
+## Data information for taxonomic diversity for every pair of assemblages (incidence data)
 data(Second_growth_forests)
 
 # data = Second_growth_forests
