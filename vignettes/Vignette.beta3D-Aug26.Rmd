@@ -739,7 +739,7 @@ DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', datatype = 'abu
 
 ```{r echo=FALSE}
 
-## Data information for phylogenetic diversity
+## Data information for mean phylogenetic diversity
 data(Brazil_rainforests)
 data(Brazil_tree)
 tmp = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD', datatype = 'abundance', 
@@ -749,7 +749,7 @@ tmp
 
 ```
 
-Information description:
+For both `PDtype = "PD"` and `PDtype = "meanPD"`, the output information is described as follows:
 
 - `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`: definitions are the same as in the TD output.
 
@@ -791,6 +791,8 @@ tmp
 
 ```
 
+For `PDtype = "AUC"` the output information is described as follows:
+
 - `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`: definitions are the same as in the TD output.
 
 - `Tree.depth.min` = the minimum time reference point used for calculating the integrated mean phylogenetic diversity; this value is zero.
@@ -820,7 +822,7 @@ tmp
 
 ```
 
-Information description:
+For `FDtype = "tau_value"` the output information is described as follows:
 
 - `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`: definitions are the same as in the TD output.
 
@@ -849,7 +851,7 @@ tmp[,c("SC(n)","SC(2n)","dmean","dmax")] = round(tmp[,c("SC(n)","SC(2n)","dmean"
 tmp
 ```
 
-Information description:
+For `FDtype = "AUC"` the output information is described as follows:
 
 - `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`: definitions are the same as in TD and thus are omitted.
 

@@ -4514,8 +4514,8 @@ ggplotColors <- function(g){
 #' @param diversity selection of diversity type: \code{'TD'} = Taxonomic diversity, \code{'PD'} = Phylogenetic diversity, and \code{'FD'} = Functional diversity.
 #' @param datatype data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).
 #' @param PDtree (required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format spanned by all observed species across the input datasets.
-#' @param PDreftime (argument only for \code{diversity = "PD"} and \code{PDtype = "meanPD"}), a numerical value specifying a fixed time reference point for phylogenetic diversity. Default is \code{PDreftime = NULL}, in which case the age of the root of the phylogenetic tree spanned by the pooled observed species is used.
-#' @param PDtype (argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "meanPD"} for mean phylogenetic diversity, or \code{PDtype = "AUC"} for an overall measure that integrates mean phylogenetic diversity over all time reference points from zero to the age of the root. Default is \code{PDtype = "meanPD"}.
+#' @param PDreftime (argument only for \code{diversity = "PD"} and \code{PDtype = "PD"} or \code{PDtype = "meanPD"}), a numerical value specifying a fixed time reference point for phylogenetic diversity. Default is \code{PDreftime = NULL}, in which case the age of the root of the phylogenetic tree spanned by the pooled observed species is used.
+#' @param PDtype (argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "PD"} for effective total branch length, \code{PDtype = "meanPD"} for effective number of equally divergent lineages, or \code{PDtype = "AUC"} for an overall measure that integrates mean phylogenetic diversity over all time reference points from zero to the age of the root. Default is \code{PDtype = "meanPD"}.
 #' @param FDdistM (required argument for \code{diversity = "FD"}), a species pairwise distance matrix for all species in the pooled assemblage. 
 #' @param FDtype (argument only for \code{diversity = "FD"}), select FD type: \code{FDtype = "tau_value"} for FD under a specified threshold value, or \code{FDtype = "AUC"} (area under the curve of tau-profile) for an overall FD which integrates all threshold values between zero and one. Default is \code{FDtype = "AUC"}.  
 #' @param FDtau (argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}), a numerical value between 0 and
@@ -4529,7 +4529,7 @@ ggplotColors <- function(g){
 #' individual/pooled/joint assemblage (\code{Assemblage}), sample size (\code{n}), observed species richness (\code{S.obs}), sample coverage estimate of the reference sample (\code{SC(n)}), 
 #' sample coverage estimate for twice the reference sample size (\code{SC(2n)}). Other additional information is given below.\cr\cr
 #' (1) TD: the first five species abundance frequency counts in the reference sample (\code{f1}--\code{f5}).\cr\cr
-#' (2) PD (\code{PDtype = "meanPD"}): the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
+#' (2) PD (\code{PDtype = "PD"} or \code{PDtype = "meanPD"}): the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
 #' the number of singletons (\code{f1*}) and doubletons (\code{f2*}) in  the node/branch abundance set, as well as the total branch length 
 #' of those singletons (\code{g1}) and of those doubletons (\code{g2}), and the reference time (\code{Reftime}).\cr\cr
 #' (3) PD (\code{PDtype = "AUC"}): the minimum time reference point (\code{Tree.depth.min}) and the maximum time reference point
@@ -4569,6 +4569,16 @@ ggplotColors <- function(g){
 #' info_TD_inci_pair
 #' 
 #' \donttest{
+#'
+#' ## (Data Information) Phylogenetic diversity for abundance data
+#' data(Brazil_rainforests)
+#' data(Brazil_tree)
+#' info_PD_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD',
+#'                               datatype = 'abundance', PDtype = 'PD', PDtree = Brazil_tree,
+#'                               PDreftime = NULL)
+#' info_PD_abun
+#'
+#'
 #' ## (Data Information) Mean phylogenetic diversity for abundance data 
 #' data(Brazil_rainforests)
 #' data(Brazil_tree)
@@ -4618,8 +4628,8 @@ DataInfobeta3D = function(data, diversity = 'TD', datatype = 'abundance',
   if (length(PDreftime) > 1)
     stop("PDreftime can only accept a value instead of a vector.", call. = FALSE)
   
-  if(is.na(pmatch(PDtype, c("meanPD", "AUC"))))
-    stop("Incorrect phylogenetic diversity type. Please use 'meanPD' or 'AUC'.",
+  if(is.na(pmatch(PDtype, c("PD", "meanPD", "AUC"))))
+    stop("Incorrect phylogenetic diversity type. Please use 'PD', 'meanPD' or 'AUC'.",
          call. = FALSE)
   
   if (FDtype == "tau_values") stop('Please try FDtype = "tau_value".')  
@@ -4875,7 +4885,7 @@ DataInfobeta3D = function(data, diversity = 'TD', datatype = 'abundance',
     
   }
   
-  if (diversity == "PD" & PDtype == "meanPD") {
+  if (diversity == "PD" & PDtype %in% c("PD", "meanPD")) {
     
     if(is.null(PDreftime)) PDreftime = H_max else if (PDreftime <= 0) { 
       stop("Reference time must be greater than 0. Use NULL to set it to pooled tree height.", call. = FALSE)
