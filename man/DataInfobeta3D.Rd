@@ -25,11 +25,11 @@ DataInfobeta3D(
 
 \item{datatype}{data type of input data: individual-based abundance data (\code{datatype = "abundance"}) or species by sampling-units incidence/occurrence matrix (\code{datatype = "incidence_raw"}) with all entries being 0 (non-detection) or 1 (detection).}
 
-\item{PDtype}{(argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "meanPD"} for mean phylogenetic diversity, or \code{PDtype = "AUC"} for an overall measure that integrates mean phylogenetic diversity over all time reference points from zero to the age of the root. Default is \code{PDtype = "meanPD"}.}
+\item{PDtype}{(argument only for \code{diversity = "PD"}), select PD type: \code{PDtype = "PD"} for effective total branch length, \code{PDtype = "meanPD"} for effective number of equally divergent lineages, or \code{PDtype = "AUC"} for an overall measure that integrates mean phylogenetic diversity over all time reference points from zero to the age of the root. Default is \code{PDtype = "meanPD"}.}
 
 \item{PDtree}{(required argument for \code{diversity = "PD"}), a phylogenetic tree in Newick format spanned by all observed species across the input datasets.}
 
-\item{PDreftime}{(argument only for \code{diversity = "PD"} and \code{PDtype = "meanPD"}), a numerical value specifying a fixed time reference point for phylogenetic diversity. Default is \code{PDreftime = NULL}, in which case the age of the root of the phylogenetic tree spanned by the pooled observed species is used.}
+\item{PDreftime}{(argument only for \code{diversity = "PD"} and \code{PDtype = "PD"} or \code{PDtype = "meanPD"}), a numerical value specifying a fixed time reference point for phylogenetic diversity. Default is \code{PDreftime = NULL}, in which case the age of the root of the phylogenetic tree spanned by the pooled observed species is used.}
 
 \item{FDdistM}{(required argument for \code{diversity = "FD"}), a species pairwise distance matrix for all species in the pooled assemblage.}
 
@@ -48,7 +48,7 @@ For abundance data, basic information shared by TD, PD and FD includes dataset n
 individual/pooled/joint assemblage (\code{Assemblage}), sample size (\code{n}), observed species richness (\code{S.obs}), sample coverage estimate of the reference sample (\code{SC(n)}), 
 sample coverage estimate for twice the reference sample size (\code{SC(2n)}). Other additional information is given below.\cr\cr
 (1) TD: the first five species abundance frequency counts in the reference sample (\code{f1}--\code{f5}).\cr\cr
-(2) PD (\code{PDtype = "meanPD"}): the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
+(2) PD (\code{PDtype = "PD"} or \code{PDtype = "meanPD"}): the observed total branch length in the phylogenetic tree (\code{PD.obs}), 
 the number of singletons (\code{f1*}) and doubletons (\code{f2*}) in  the node/branch abundance set, as well as the total branch length 
 of those singletons (\code{g1}) and of those doubletons (\code{g2}), and the reference time (\code{Reftime}).\cr\cr
 (3) PD (\code{PDtype = "AUC"}): the minimum time reference point (\code{Tree.depth.min}) and the maximum time reference point
@@ -93,6 +93,16 @@ info_TD_inci_pair = DataInfobeta3D(data = Second_growth_forests, diversity = 'TD
 info_TD_inci_pair
 
 \donttest{
+
+## (Data Information) Phylogenetic diversity for abundance data
+data(Brazil_rainforests)
+data(Brazil_tree)
+info_PD_abun = DataInfobeta3D(data = Brazil_rainforests[1:2], diversity = 'PD',
+                              datatype = 'abundance', PDtype = 'PD', PDtree = Brazil_tree,
+                              PDreftime = NULL)
+info_PD_abun
+
+
 ## (Data Information) Mean phylogenetic diversity for abundance data 
 data(Brazil_rainforests)
 data(Brazil_tree)

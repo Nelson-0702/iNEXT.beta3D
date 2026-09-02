@@ -2714,7 +2714,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
           
           if (datatype == "abundance") {
             tree_bt = PDtree
-            bootstrap_population = iNEXT.beta3D:::bootstrap_population_multiple_assemblage(data, 
+            bootstrap_population = bootstrap_population_multiple_assemblage(data, 
                                                                                            data_gamma, "abundance")
             p_bt = bootstrap_population
             unseen_p = p_bt[-(1:nrow(data)), ] %>% matrix(ncol = ncol(data))
@@ -2857,7 +2857,7 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
           }
           if (datatype == "incidence_raw") {
             tree_bt = PDtree
-            bootstrap_population = iNEXT.beta3D:::bootstrap_population_multiple_assemblage(data_2D, 
+            bootstrap_population = bootstrap_population_multiple_assemblage(data_2D, 
                                                                                            data_gamma_freq, "incidence")
             p_bt = bootstrap_population
             unseen_p = p_bt[-(1:nrow(data[[1]])), ] %>% 
