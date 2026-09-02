@@ -3,7 +3,7 @@
 # iNEXT.beta3D (R package)
 
 <h5 align="right">
-Latest version: 2024-02-22
+Latest version: 2026-09-03
 </h5>
 <font color="394CAE">
 <h3 color="394CAE" style="font-weight: bold">
@@ -11,8 +11,9 @@ An Introduction to iNEXT.beta3D via Examples
 </h3>
 </font> <br>
 <h5>
-<b>Anne Chao and Kai-Hsiang Hu</b> <br><br> <i>Institute of Statistics,
-National Tsing Hua University, Hsin-Chu, Taiwan 30043</i>
+<b>Anne Chao, Yu-Ti Lee, Keng-Lei Lin, and Po-Yen Chuang</b> <br><br>
+<i>Institute of Statistics, National Tsing Hua University, Hsin-Chu,
+Taiwan 30043</i>
 </h5>
 
 <br> The package `iNEXT.beta3D` (iNterpolation and EXTrapolation with
@@ -90,9 +91,10 @@ papers (2023a, b) and also cite the `iNEXT.beta3D` package:
     standardization. <i>Ecological Monographs</i>
     e1588.(<https://doi.org/10.1002/ecm.1588>)
 
--   Chao, A. and Hu, K.-H. (2023). The iNEXT.beta3D package:
-    interpolation and extrapolation with beta diversity for three
-    dimensions of biodiversity. R package available from CRAN.
+-   Chao, A., Lee, Y.-T., Lin, K.-L., and Chuang, P.-Y. (2026). The
+    iNEXT.beta3D package: interpolation and extrapolation with beta
+    diversity for three dimensions of biodiversity. R package version
+    1.1.0.
 
 ## SOFTWARE NEEDED TO RUN iNEXT.beta3D IN R
 
@@ -236,14 +238,14 @@ Brazil_rainforests
 
 We use tree species data collected from two second-growth rainforests,
 namely Cuatro Rios (CR) and Juan Enriquez (JE) in Costa Rica, as demo
-data to assess temporal beta diversity between two years (2005 and 2017)
-within each forest. Each year is designated as an assemblage. The data
-in each forest were collected from a 1-ha (50 m x 200 m) forest plot.
-Because individual trees of some species may exhibit intra-specific
-aggregation within a 1 ha area, they may not be suitable for modelling
-as independent sampling units. In this case, it is statistically
-preferable to first convert species abundance records in each forest to
-occurrence or incidence (detection/non-detection) data in
+data to assess temporal beta diversity among three years (2005, 2011,
+and 2017) within each forest. Each year is designated as an assemblage.
+The data in each forest were collected from a 1-ha (50 m x 200 m) forest
+plot. Because individual trees of some species may exhibit
+intra-specific aggregation within a 1 ha area, they may not be suitable
+for modelling as independent sampling units. In this case, it is
+statistically preferable to first convert species abundance records in
+each forest to occurrence or incidence (detection/non-detection) data in
 subplots/quadrats; see Chao et al. (2023b) for analysis details.
 
 Each 1-ha forest was divided into 100 subplots (each with 0.01 ha) and
@@ -255,12 +257,13 @@ species among subplots as a “proxy” for its abundance, the
 aggregated data and to avoid the effect of intra-specific aggregation.
 
 The data (named `"Second_growth_forests"`) consist of two lists (for two
-forests named “CR 2005 vs. 2017” and “JE 2005 vs. 2017”, respectively).
-Each list consists of two matrices; the first matrix represents the
-species-by-subplot incidence data in 2005, and the second matrix
-represents the species-by-subplots incidence data in 2017. Run the
-following code to view the incidence raw data: (Here we only show the
-first ten rows and six columns for each matrix; there are 100
+forests named `"CR_2005_2011_2017"` and `"JE_2005_2011_2017"`,
+respectively). Each list consists of three matrices; the first matrix
+represents the species-by-subplot incidence data in 2005, the second
+matrix represents the species-by-subplot incidence data in 2011, and the
+third matrix represents the species-by-subplot incidence data in 2017.
+Run the following code to view the incidence raw data: (Here we only
+show the first ten rows and six columns for each matrix; there are 100
 columns/subplots in each forest and each year.)
 
 ``` r
@@ -268,8 +271,8 @@ data(Second_growth_forests)
 Second_growth_forests
 ```
 
-    $`CR 2005 vs. 2017`
-    $`CR 2005 vs. 2017`$Year_2005
+    $CR_2005_2011_2017
+    $CR_2005_2011_2017$Year_2005
            Subplot_1 Subplot_2 Subplot_3 Subplot_4 Subplot_5 Subplot_6
     Abaade         0         0         0         0         0         0
     Alcflo         0         0         0         0         0         0
@@ -282,7 +285,20 @@ Second_growth_forests
     Apemem         0         0         0         0         0         0
     Ardfim         0         0         0         0         0         0
 
-    $`CR 2005 vs. 2017`$Year_2017
+    $CR_2005_2011_2017$Year_2011
+           Subplot_1 Subplot_2 Subplot_3 Subplot_4 Subplot_5 Subplot_6
+    Abaade         0         0         0         0         0         0
+    Alcflo         0         0         0         0         0         0
+    Alclat         0         1         0         0         0         0
+    Aliatl         0         0         0         0         0         0
+    Ampmac         0         0         0         0         0         0
+    Anacra         0         1         0         0         0         1
+    Annama         0         0         0         0         0         0
+    Annpap         0         0         0         0         0         0
+    Apemem         0         0         0         0         0         0
+    Ardfim         0         0         0         0         0         0
+
+    $CR_2005_2011_2017$Year_2017
            Subplot_1 Subplot_2 Subplot_3 Subplot_4 Subplot_5 Subplot_6
     Abaade         0         0         0         0         0         0
     Alcflo         0         0         0         0         0         0
@@ -296,8 +312,8 @@ Second_growth_forests
     Ardfim         0         0         0         0         0         0
 
 
-    $`JE 2005 vs. 2017`
-    $`JE 2005 vs. 2017`$Year_2005
+    $JE_2005_2011_2017
+    $JE_2005_2011_2017$Year_2005
            Subplot_1 Subplot_2 Subplot_3 Subplot_4 Subplot_5 Subplot_6
     Alccos         0         0         0         0         0         0
     Alcflo         0         0         0         0         0         0
@@ -310,7 +326,20 @@ Second_growth_forests
     Brolac         0         0         0         0         0         0
     Byrcra         0         0         0         0         1         0
 
-    $`JE 2005 vs. 2017`$Year_2017
+    $JE_2005_2011_2017$Year_2011
+           Subplot_1 Subplot_2 Subplot_3 Subplot_4 Subplot_5 Subplot_6
+    Alccos         0         0         0         0         0         0
+    Alcflo         0         0         0         0         0         0
+    Alclat         0         0         0         0         0         0
+    Annpap         0         0         0         0         0         0
+    Apemem         0         0         0         0         0         0
+    Astcon         0         0         0         0         0         0
+    Bacgas         0         0         0         0         0         0
+    Brogui         0         0         0         0         0         0
+    Brolac         0         0         0         0         0         0
+    Byrcra         0         0         0         0         1         0
+
+    $JE_2005_2011_2017$Year_2017
            Subplot_1 Subplot_2 Subplot_3 Subplot_4 Subplot_5 Subplot_6
     Alccos         0         0         0         0         0         0
     Alcflo         0         0         0         0         0         0
@@ -343,7 +372,7 @@ Tip labels:
 Node labels:
   magnoliales_to_asterales, poales_to_asterales, , , , , ...
 
-Rooted; includes branch lengths.
+Rooted; includes branch length(s).
 ```
 
 #### Species pairwise distance matrix format for FD
@@ -376,8 +405,9 @@ arguments:
 ``` r
 iNEXTbeta3D(data, diversity = "TD", q = c(0, 1, 2), datatype = "abundance",
             base = "coverage", level = NULL, nboot = 10, conf = 0.95,
-            PDtree = NULL, PDreftime = NULL, PDtype = "meanPD",
-            FDdistM = NULL, FDtype = "AUC", FDtau = NULL, FDcut_number = 30)
+            PDtree = NULL, PDreftime = NULL,  PDtype = "AUC", PDcut_number = 30,
+            FDdistM = NULL, FDtype = "AUC", FDtau = NULL, FDcut_number = 30,
+            by_pair = FALSE)
 ```
 
 The arguments of this function are briefly described below, and will be
@@ -529,9 +559,12 @@ pooled assemblage.
 PDreftime
 </td>
 <td style="text-align: left;">
-(argument only for <code>diversity = ‘PD’</code>), a numerical value
-specifying reference time for PD. Default is <code>PDreftime =
-NULL</code> (i.e., the age of the root of <code>PDtree</code>).
+(argument only for <code>diversity = ‘PD’</code> and <code>PDtype =
+‘PD’</code> or <code>PDtype = ‘meanPD’</code>), a numerical value
+specifying a fixed time reference point for phylogenetic diversity.
+Default is <code>PDreftime = NULL</code>, in which case the age of the
+root of the phylogenetic tree spanned by the pooled observed species is
+used.
 </td>
 </tr>
 <tr>
@@ -540,10 +573,25 @@ PDtype
 </td>
 <td style="text-align: left;">
 (argument only for <code>diversity = ‘PD’</code>), select PD type:
-<code>PDtype = ‘PD’</code> (effective total branch length) or
-<code>PDtype = ‘meanPD’</code> (effective number of equally divergent
-lineages). Default is <code>PDtype = ‘meanPD’</code>, where
-<code>meanPD</code> = PD/tree depth.
+<code>PDtype = ‘PD’</code> for effective total branch length,
+<code>PDtype = ‘meanPD’</code> for effective number of equally divergent
+lineages, or <code>PDtype = ‘AUC’</code> for an overall measure that
+integrates mean phylogenetic diversity over all time reference points
+from zero to the age of the root. Default is <code>PDtype =
+‘AUC’</code>.
+</td>
+</tr>
+<tr>
+<td style="text-align: left;">
+PDcut_number
+</td>
+<td style="text-align: left;">
+(argument only for <code>diversity = ‘PD’</code> and <code>PDtype =
+‘AUC’</code>), a positive integer greater than one specifying the number
+of equally spaced time reference points between zero and the age of the
+root used to numerically approximate the AUC. Default is
+<code>PDcut_number = 30</code>. A larger value can be used to obtain a
+more accurate AUC approximation.
 </td>
 </tr>
 <tr>
@@ -581,10 +629,10 @@ the pooled dataset (i.e., quadratic entropy).
 </td>
 </tr>
 <tr>
-<td style="border-bottom: 2px solid grey; text-align: left;">
+<td style="text-align: left;">
 FDcut_number
 </td>
-<td style="border-bottom: 2px solid grey; text-align: left;">
+<td style="text-align: left;">
 (argument only for <code>diversity = ‘FD’</code> and <code>FDtype =
 ‘AUC’</code>), a numeric number to cut \[0, 1\] interval into
 equal-spaced sub-intervals to obtain the AUC value by integrating the
@@ -592,6 +640,19 @@ tau-profile. Equivalently, the number of tau values that will be
 considered to compute the integrated AUC value. Default is
 <code>FDcut_number = 30</code>. A larger value can be set to obtain more
 accurate AUC value.
+</td>
+</tr>
+<tr>
+<td style="border-bottom: 2px solid grey; text-align: left;">
+by_pair
+</td>
+<td style="border-bottom: 2px solid grey; text-align: left;">
+a logical variable specifying whether diversity decomposition is
+performed for all assemblages as a whole or for every pair of
+assemblages. If <code>by_pair = FALSE</code>, alpha/beta/gamma diversity
+and dissimilarity are computed for all assemblages within each dataset
+as a whole; if <code>by_pair = TRUE</code>, the corresponding output is
+computed for every pair of assemblages. Default is <code>FALSE</code>.
 </td>
 </tr>
 </tbody>
@@ -748,75 +809,75 @@ Below we show the output for taxonomic beta diversity between the “Edge”
 and “Interior” habitats in the “Marim” fragment.
 
        Dataset Order.q    SC Size Beta                Method  s.e.   LCL  UCL
-    1    Marim       0 0.500  148 1.11           Rarefaction 0.069 0.976 1.25
-    2    Marim       0 0.525  162 1.11           Rarefaction 0.069 0.973 1.24
-    3    Marim       0 0.550  178 1.10           Rarefaction 0.068 0.971 1.24
-    4    Marim       0 0.575  195 1.10           Rarefaction 0.067 0.970 1.23
-    5    Marim       0 0.600  213 1.10           Rarefaction 0.066 0.970 1.23
-    6    Marim       0 0.625  233 1.09           Rarefaction 0.063 0.971 1.22
-    7    Marim       0 0.650  255 1.09           Rarefaction 0.060 0.974 1.21
-    8    Marim       0 0.675  279 1.09           Rarefaction 0.057 0.977 1.20
-    9    Marim       0 0.696  302 1.09 Observed_SC(n, alpha) 0.054 0.980 1.19
-    10   Marim       0 0.700  306 1.09         Extrapolation 0.054 0.981 1.19
-    11   Marim       0 0.725  336 1.08         Extrapolation 0.051 0.985 1.18
-    12   Marim       0 0.750  368 1.08         Extrapolation 0.050 0.986 1.18
-    13   Marim       0 0.775  403 1.08         Extrapolation 0.053 0.981 1.19
-    14   Marim       0 0.800  443 1.09         Extrapolation 0.058 0.973 1.20
-    15   Marim       0 0.825  488 1.09         Extrapolation 0.066 0.961 1.22
-    16   Marim       0 0.850  541 1.09         Extrapolation 0.074 0.948 1.24
-    17   Marim       0 0.855  552 1.09 Observed_SC(n, gamma) 0.076 0.944 1.24
-    18   Marim       0 0.875  602 1.09         Extrapolation 0.083 0.932 1.26
-    19   Marim       0 0.876  604 1.09  Extrap_SC(2n, alpha) 0.083 0.932 1.26
-    20   Marim       1 0.500  148 1.11           Rarefaction 0.063 0.987 1.23
-    21   Marim       1 0.525  162 1.11           Rarefaction 0.063 0.985 1.23
-    22   Marim       1 0.550  178 1.11           Rarefaction 0.062 0.984 1.23
-    23   Marim       1 0.575  195 1.10           Rarefaction 0.061 0.983 1.22
-    24   Marim       1 0.600  213 1.10           Rarefaction 0.060 0.984 1.22
-    25   Marim       1 0.625  233 1.10           Rarefaction 0.058 0.985 1.21
-    26   Marim       1 0.650  255 1.10           Rarefaction 0.056 0.988 1.21
-    27   Marim       1 0.675  279 1.09           Rarefaction 0.053 0.991 1.20
-    28   Marim       1 0.696  302 1.09 Observed_SC(n, alpha) 0.051 0.994 1.19
-    29   Marim       1 0.700  306 1.09         Extrapolation 0.051 0.994 1.19
-    30   Marim       1 0.725  336 1.09         Extrapolation 0.048 0.997 1.19
-    31   Marim       1 0.750  368 1.09         Extrapolation 0.047 0.998 1.18
-    32   Marim       1 0.775  403 1.09         Extrapolation 0.047 0.995 1.18
-    33   Marim       1 0.800  443 1.08         Extrapolation 0.049 0.988 1.18
-    34   Marim       1 0.825  488 1.08         Extrapolation 0.050 0.981 1.18
-    35   Marim       1 0.850  541 1.07         Extrapolation 0.052 0.972 1.18
-    36   Marim       1 0.855  552 1.07 Observed_SC(n, gamma) 0.053 0.970 1.18
-    37   Marim       1 0.875  602 1.07         Extrapolation 0.054 0.963 1.17
-    38   Marim       1 0.876  604 1.07  Extrap_SC(2n, alpha) 0.054 0.963 1.17
-    39   Marim       1 0.900  678 1.06         Extrapolation 0.055 0.957 1.17
-    40   Marim       1 0.925  775 1.06         Extrapolation 0.056 0.953 1.17
-    41   Marim       1 0.950  912 1.06         Extrapolation 0.056 0.954 1.17
-    42   Marim       1 0.969 1075 1.07  Extrap_SC(2n, gamma) 0.054 0.959 1.17
-    43   Marim       1 0.975 1147 1.07         Extrapolation 0.054 0.963 1.17
-    44   Marim       1 1.000  Inf 1.10         Extrapolation 0.045 1.016 1.19
-    45   Marim       2 0.500  148 1.10           Rarefaction 0.053 0.996 1.21
-    46   Marim       2 0.525  162 1.10           Rarefaction 0.053 0.995 1.20
-    47   Marim       2 0.550  178 1.10           Rarefaction 0.052 0.995 1.20
-    48   Marim       2 0.575  195 1.09           Rarefaction 0.051 0.995 1.19
-    49   Marim       2 0.600  213 1.09           Rarefaction 0.049 0.995 1.19
-    50   Marim       2 0.625  233 1.09           Rarefaction 0.048 0.996 1.18
-    51   Marim       2 0.650  255 1.09           Rarefaction 0.046 0.998 1.18
-    52   Marim       2 0.675  279 1.09           Rarefaction 0.044 0.999 1.17
-    53   Marim       2 0.696  302 1.08 Observed_SC(n, alpha) 0.043 1.000 1.17
-    54   Marim       2 0.700  306 1.08         Extrapolation 0.043 1.001 1.17
-    55   Marim       2 0.725  336 1.08         Extrapolation 0.042 1.002 1.17
-    56   Marim       2 0.750  368 1.08         Extrapolation 0.042 1.002 1.17
-    57   Marim       2 0.775  403 1.09         Extrapolation 0.044 1.001 1.17
-    58   Marim       2 0.800  443 1.09         Extrapolation 0.045 0.999 1.18
-    59   Marim       2 0.825  488 1.09         Extrapolation 0.047 0.998 1.18
-    60   Marim       2 0.850  541 1.09         Extrapolation 0.048 0.997 1.18
-    61   Marim       2 0.855  552 1.09 Observed_SC(n, gamma) 0.048 0.997 1.18
-    62   Marim       2 0.875  602 1.09         Extrapolation 0.049 0.996 1.19
-    63   Marim       2 0.876  604 1.09  Extrap_SC(2n, alpha) 0.049 0.996 1.19
-    64   Marim       2 0.900  678 1.09         Extrapolation 0.049 0.997 1.19
-    65   Marim       2 0.925  775 1.09         Extrapolation 0.049 0.998 1.19
-    66   Marim       2 0.950  912 1.09         Extrapolation 0.048 0.999 1.19
-    67   Marim       2 0.969 1075 1.09  Extrap_SC(2n, gamma) 0.048 1.000 1.19
-    68   Marim       2 0.975 1147 1.09         Extrapolation 0.048 1.000 1.19
-    69   Marim       2 1.000  Inf 1.09         Extrapolation 0.048 0.994 1.18
+    1    Marim       0 0.500  148 1.11           Rarefaction 0.063 0.988 1.23
+    2    Marim       0 0.525  162 1.11           Rarefaction 0.064 0.983 1.23
+    3    Marim       0 0.550  178 1.10           Rarefaction 0.065 0.977 1.23
+    4    Marim       0 0.575  195 1.10           Rarefaction 0.067 0.971 1.23
+    5    Marim       0 0.600  213 1.10           Rarefaction 0.069 0.964 1.23
+    6    Marim       0 0.625  233 1.09           Rarefaction 0.071 0.955 1.24
+    7    Marim       0 0.650  255 1.09           Rarefaction 0.075 0.945 1.24
+    8    Marim       0 0.675  279 1.09           Rarefaction 0.079 0.934 1.24
+    9    Marim       0 0.696  302 1.09 Observed_SC(n, alpha) 0.084 0.922 1.25
+    10   Marim       0 0.700  306 1.09         Extrapolation 0.085 0.920 1.25
+    11   Marim       0 0.725  336 1.08         Extrapolation 0.092 0.904 1.27
+    12   Marim       0 0.750  368 1.08         Extrapolation 0.101 0.887 1.28
+    13   Marim       0 0.775  403 1.08         Extrapolation 0.108 0.873 1.30
+    14   Marim       0 0.800  443 1.09         Extrapolation 0.115 0.862 1.31
+    15   Marim       0 0.825  488 1.09         Extrapolation 0.121 0.853 1.33
+    16   Marim       0 0.850  541 1.09         Extrapolation 0.126 0.845 1.34
+    17   Marim       0 0.855  552 1.09 Observed_SC(n, gamma) 0.127 0.843 1.34
+    18   Marim       0 0.875  602 1.09         Extrapolation 0.132 0.836 1.35
+    19   Marim       0 0.876  604 1.09  Extrap_SC(2n, alpha) 0.132 0.835 1.35
+    20   Marim       1 0.500  148 1.11           Rarefaction 0.058 0.996 1.22
+    21   Marim       1 0.525  162 1.11           Rarefaction 0.059 0.993 1.22
+    22   Marim       1 0.550  178 1.11           Rarefaction 0.059 0.989 1.22
+    23   Marim       1 0.575  195 1.10           Rarefaction 0.060 0.986 1.22
+    24   Marim       1 0.600  213 1.10           Rarefaction 0.061 0.981 1.22
+    25   Marim       1 0.625  233 1.10           Rarefaction 0.062 0.976 1.22
+    26   Marim       1 0.650  255 1.10           Rarefaction 0.064 0.971 1.22
+    27   Marim       1 0.675  279 1.09           Rarefaction 0.067 0.964 1.23
+    28   Marim       1 0.696  302 1.09 Observed_SC(n, alpha) 0.069 0.958 1.23
+    29   Marim       1 0.700  306 1.09         Extrapolation 0.070 0.957 1.23
+    30   Marim       1 0.725  336 1.09         Extrapolation 0.074 0.947 1.24
+    31   Marim       1 0.750  368 1.09         Extrapolation 0.079 0.936 1.24
+    32   Marim       1 0.775  403 1.09         Extrapolation 0.083 0.924 1.25
+    33   Marim       1 0.800  443 1.08         Extrapolation 0.088 0.912 1.26
+    34   Marim       1 0.825  488 1.08         Extrapolation 0.092 0.900 1.26
+    35   Marim       1 0.850  541 1.07         Extrapolation 0.094 0.889 1.26
+    36   Marim       1 0.855  552 1.07 Observed_SC(n, gamma) 0.095 0.887 1.26
+    37   Marim       1 0.875  602 1.07         Extrapolation 0.097 0.879 1.26
+    38   Marim       1 0.876  604 1.07  Extrap_SC(2n, alpha) 0.097 0.879 1.26
+    39   Marim       1 0.900  678 1.06         Extrapolation 0.098 0.873 1.26
+    40   Marim       1 0.925  775 1.06         Extrapolation 0.098 0.869 1.25
+    41   Marim       1 0.950  912 1.06         Extrapolation 0.098 0.871 1.25
+    42   Marim       1 0.969 1075 1.07  Extrap_SC(2n, gamma) 0.096 0.878 1.25
+    43   Marim       1 0.975 1147 1.07         Extrapolation 0.095 0.882 1.25
+    44   Marim       1 1.000  Inf 1.10         Extrapolation 0.082 0.942 1.26
+    45   Marim       2 0.500  148 1.10           Rarefaction 0.051 1.001 1.20
+    46   Marim       2 0.525  162 1.10           Rarefaction 0.051 0.999 1.20
+    47   Marim       2 0.550  178 1.10           Rarefaction 0.051 0.997 1.20
+    48   Marim       2 0.575  195 1.09           Rarefaction 0.051 0.994 1.19
+    49   Marim       2 0.600  213 1.09           Rarefaction 0.051 0.992 1.19
+    50   Marim       2 0.625  233 1.09           Rarefaction 0.051 0.989 1.19
+    51   Marim       2 0.650  255 1.09           Rarefaction 0.052 0.986 1.19
+    52   Marim       2 0.675  279 1.09           Rarefaction 0.053 0.982 1.19
+    53   Marim       2 0.696  302 1.08 Observed_SC(n, alpha) 0.055 0.978 1.19
+    54   Marim       2 0.700  306 1.08         Extrapolation 0.055 0.977 1.19
+    55   Marim       2 0.725  336 1.08         Extrapolation 0.057 0.972 1.20
+    56   Marim       2 0.750  368 1.08         Extrapolation 0.060 0.968 1.20
+    57   Marim       2 0.775  403 1.09         Extrapolation 0.061 0.966 1.21
+    58   Marim       2 0.800  443 1.09         Extrapolation 0.062 0.966 1.21
+    59   Marim       2 0.825  488 1.09         Extrapolation 0.063 0.967 1.21
+    60   Marim       2 0.850  541 1.09         Extrapolation 0.062 0.968 1.21
+    61   Marim       2 0.855  552 1.09 Observed_SC(n, gamma) 0.062 0.969 1.21
+    62   Marim       2 0.875  602 1.09         Extrapolation 0.062 0.970 1.21
+    63   Marim       2 0.876  604 1.09  Extrap_SC(2n, alpha) 0.062 0.970 1.21
+    64   Marim       2 0.900  678 1.09         Extrapolation 0.061 0.973 1.21
+    65   Marim       2 0.925  775 1.09         Extrapolation 0.060 0.976 1.21
+    66   Marim       2 0.950  912 1.09         Extrapolation 0.058 0.979 1.21
+    67   Marim       2 0.969 1075 1.09  Extrap_SC(2n, gamma) 0.057 0.982 1.21
+    68   Marim       2 0.975 1147 1.09         Extrapolation 0.057 0.983 1.20
+    69   Marim       2 1.000  Inf 1.09         Extrapolation 0.052 0.988 1.19
 
 Run the following code to display the two types of curves:
 
@@ -847,164 +908,7 @@ ggiNEXTbeta3D(output_TDs_abun)
 
 <img src="README/README-unnamed-chunk-18-1.png" width="576" style="display: block; margin: auto;" />
 
-### EXAMPLE 2: Abundance data with user-specified sample sizes or coverage values
-
-In addition to the default sample sizes or coverage values,
-`iNEXTbeta3D` also computes standardized 3D estimates with a particular
-vector of user-specified sample sizes or coverage values. The following
-commands return the TD estimates with two user-specified levels of
-sample coverage (e.g., 85% and 90%). Only the output for gamma, alpha
-and beta is shown below in each dataset; the output for 1-C, 1-U, 1-V,
-1-S is omitted.
-
-``` r
-## R/E Analysis with taxonomic diversity for abundance data
-data(Brazil_rainforests)
-
-output_TDc_abun_byuser = iNEXTbeta3D(data = Brazil_rainforests, diversity = 'TD', 
-                                     datatype = "abundance", base = 'coverage', nboot = 10,
-                                     level = c(0.85, 0.9))
-output_TDc_abun_byuser
-```
-
-    $Marim
-    $Marim$gamma
-      Dataset     Order.q   SC    Size   Gamma        Method  s.e.     LCL     UCL
-    1         Order q = 0                                                         
-    2   Marim           0 0.85 295.313 118.011   Rarefaction 5.727 106.786 129.237
-    3   Marim           0  0.9 374.487   127.8 Extrapolation 7.546  113.01  142.59
-    4         Order q = 1                                                         
-    5   Marim           1 0.85 295.313  90.988   Rarefaction 5.307  80.587 101.388
-    6   Marim           1  0.9 374.487  97.277 Extrapolation 5.834  85.843 108.712
-    7         Order q = 2                                                         
-    8   Marim           2 0.85 295.313  67.621   Rarefaction 6.049  55.764  79.477
-    9   Marim           2  0.9 374.487  71.019 Extrapolation  6.55  58.181  83.857
-
-    $Marim$alpha
-      Dataset     Order.q   SC    Size   Alpha        Method  s.e.     LCL     UCL
-    1         Order q = 0                                                         
-    2   Marim           0 0.85 540.613 108.036 Extrapolation 6.704  94.896 121.175
-    3   Marim           0  0.9 677.745 116.503 Extrapolation 7.776 101.262 131.745
-    4         Order q = 1                                                         
-    5   Marim           1 0.85 540.613  84.693 Extrapolation   5.1  74.697  94.688
-    6   Marim           1  0.9 677.745  91.384 Extrapolation 5.546  80.515 102.254
-    7         Order q = 2                                                         
-    8   Marim           2 0.85 540.613  61.998 Extrapolation 5.479   51.26  72.737
-    9   Marim           2  0.9 677.745  64.996 Extrapolation 5.965  53.304  76.688
-
-    $Marim$beta
-      Dataset     Order.q   SC    Size  Beta        Method  s.e.   LCL   UCL
-    1         Order q = 0                                                   
-    2   Marim           0 0.85 540.613 1.092 Extrapolation 0.092 0.912 1.273
-    3   Marim           0  0.9 677.745 1.097 Extrapolation 0.105 0.891 1.303
-    4         Order q = 1                                                   
-    5   Marim           1 0.85 540.613 1.074 Extrapolation 0.072 0.933 1.216
-    6   Marim           1  0.9 677.745 1.064 Extrapolation 0.077 0.913 1.216
-    7         Order q = 2                                                   
-    8   Marim           2 0.85 540.613 1.091 Extrapolation 0.071 0.951 1.231
-    9   Marim           2  0.9 677.745 1.093 Extrapolation 0.073  0.95 1.235
-
-
-    $Rebio2
-    $Rebio2$gamma
-      Dataset     Order.q   SC    Size   Gamma        Method   s.e.     LCL     UCL
-    1         Order q = 0                                                          
-    2  Rebio2           0 0.85  434.58 135.297 Extrapolation 12.851 110.109 160.485
-    3  Rebio2           0  0.9 657.113 162.764 Extrapolation 15.015 133.335 192.192
-    4         Order q = 1                                                          
-    5  Rebio2           1 0.85  434.58   84.77 Extrapolation  5.664  73.668  95.871
-    6  Rebio2           1  0.9 657.113  94.373 Extrapolation  6.327  81.972 106.773
-    7         Order q = 2                                                          
-    8  Rebio2           2 0.85  434.58  57.565 Extrapolation  3.397  50.906  64.223
-    9  Rebio2           2  0.9 657.113  60.225 Extrapolation  3.646  53.079  67.372
-
-    $Rebio2$alpha
-      Dataset     Order.q   SC    Size   Alpha        Method  s.e.    LCL     UCL
-    1         Order q = 0                                                        
-    2  Rebio2           0 0.85 539.824  92.197 Extrapolation 6.656  79.15 105.243
-    3  Rebio2           0  0.9  717.89 103.188 Extrapolation 8.097 87.319 119.058
-    4         Order q = 1                                                        
-    5  Rebio2           1 0.85 539.824  58.713 Extrapolation 4.344 50.199  67.228
-    6  Rebio2           1  0.9  717.89   63.83 Extrapolation 4.871 54.283  73.377
-    7         Order q = 2                                                        
-    8  Rebio2           2 0.85 539.824  36.464 Extrapolation 3.957 28.708  44.219
-    9  Rebio2           2  0.9  717.89  37.713 Extrapolation 4.249 29.385   46.04
-
-    $Rebio2$beta
-      Dataset     Order.q   SC    Size  Beta        Method  s.e.   LCL   UCL
-    1         Order q = 0                                                   
-    2  Rebio2           0 0.85 539.824 1.467 Extrapolation 0.133 1.207 1.728
-    3  Rebio2           0  0.9  717.89 1.577 Extrapolation 0.149 1.285 1.869
-    4         Order q = 1                                                   
-    5  Rebio2           1 0.85 539.824 1.444 Extrapolation 0.093 1.261 1.627
-    6  Rebio2           1  0.9  717.89 1.478 Extrapolation 0.097 1.288 1.669
-    7         Order q = 2                                                   
-    8  Rebio2           2 0.85 539.824 1.579 Extrapolation 0.086 1.411 1.746
-    9  Rebio2           2  0.9  717.89 1.597 Extrapolation 0.082 1.437 1.757
-
-The following commands return the TD estimates with two user-specified
-levels of sample sizes (e.g., 300 and 500).
-
-``` r
-## Size-based R/E for taxonomic gamma and alpha diversity
-output_TDs_abun_byuser = iNEXTbeta3D(data = Brazil_rainforests, diversity = 'TD', 
-                                     datatype = 'abundance', base = "size", nboot = 10,
-                                     level = c(300, 500))
-output_TDs_abun_byuser
-```
-
-    $Marim
-    $Marim$gamma
-      Dataset     Order.q Size    SC   Gamma        Method  s.e.     LCL     UCL
-    1         Order q = 0                                                       
-    2   Marim           0  300 0.854 118.708   Rarefaction 3.757 111.344 126.071
-    3   Marim           0  500 0.947 137.082 Extrapolation 6.075 125.176 148.989
-    4         Order q = 1                                                       
-    5   Marim           1  300 0.854  91.406   Rarefaction 3.446  84.651   98.16
-    6   Marim           1  500 0.947 104.649 Extrapolation 4.056    96.7 112.598
-    7         Order q = 2                                                       
-    8   Marim           2  300 0.854  67.861   Rarefaction 4.309  59.415  76.306
-    9   Marim           2  500 0.947  74.527 Extrapolation  5.03  64.669  84.385
-
-    $Marim$alpha
-      Dataset     Order.q Size    SC   Alpha        Method  s.e.    LCL     UCL
-    1         Order q = 0                                                      
-    2   Marim           0  300 0.694  81.695   Rarefaction 2.144 77.493  85.897
-    3   Marim           0  500 0.831 104.795 Extrapolation 4.229 96.506 113.083
-    4         Order q = 1                                                      
-    5   Marim           1  300 0.694  66.473   Rarefaction 1.675  63.19  69.756
-    6   Marim           1  500 0.831  82.274 Extrapolation 2.441  77.49  87.059
-    7         Order q = 2                                                      
-    8   Marim           2  300 0.694  52.416   Rarefaction 2.235 48.036  56.796
-    9   Marim           2  500 0.831  60.871 Extrapolation 2.881 55.225  66.518
-
-
-    $Rebio2
-    $Rebio2$gamma
-      Dataset     Order.q Size    SC   Gamma        Method  s.e.     LCL     UCL
-    1         Order q = 0                                                       
-    2  Rebio2           0  300 0.807 112.391   Rarefaction 6.596  99.462 125.319
-    3  Rebio2           0  500 0.867 144.556 Extrapolation 9.083 126.754 162.358
-    4         Order q = 1                                                       
-    5  Rebio2           1  300 0.807   76.38   Rarefaction 5.197  66.195  86.565
-    6  Rebio2           1  500 0.867   88.06 Extrapolation 6.633   75.06  101.06
-    7         Order q = 2                                                       
-    8  Rebio2           2  300 0.807  54.382   Rarefaction 3.763  47.007  61.757
-    9  Rebio2           2  500 0.867  58.564 Extrapolation 4.317  50.103  67.026
-
-    $Rebio2$alpha
-      Dataset     Order.q Size    SC  Alpha        Method  s.e.    LCL    UCL
-    1         Order q = 0                                                    
-    2  Rebio2           0  300 0.741 68.239   Rarefaction 3.023 62.314 74.164
-    3  Rebio2           0  500 0.836 89.067 Extrapolation 4.694 79.867 98.267
-    4         Order q = 1                                                    
-    5  Rebio2           1  300 0.741 47.986   Rarefaction  3.23 41.654 54.317
-    6  Rebio2           1  500 0.836 57.286 Extrapolation 4.197  49.06 65.512
-    7         Order q = 2                                                    
-    8  Rebio2           2  300 0.741 32.948   Rarefaction 3.025 27.019 38.877
-    9  Rebio2           2  500 0.836  36.08 Extrapolation  3.52  29.18  42.98
-
-### EXAMPLE 3: Incidence data with default sample sizes or coverage values
+### EXAMPLE 2: Incidence data with default sample sizes or coverage values (all assemblages as a whole)
 
 We can also use incidence raw data (`Second_growth_forests`) to compute
 coverage-based standardized gamma, alpha, beta diversity, and four
@@ -1014,72 +918,82 @@ perform incidence data analysis. The output data frame is similar to
 that based on abundance data and thus is omitted.
 
 ``` r
-## R/E Analysis with taxonomic diversity for incidence raw data
+
+## Coverage-based R/E Analysis with taxonomic diversity for incidence raw data (all assemblages as a whole)
 data(Second_growth_forests)
 
 output_TDc_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
-                              datatype = "incidence_raw", base = 'coverage', nboot = 10)
+                              datatype = 'incidence_raw', base = "coverage", nboot = 10)
 output_TDc_inci
 ```
 
 The same procedures can be applied to incidence data. Based on the demo
-dataset, we display below the coverage-based R/E curves for comparing
-temporal beta diversity between 2005 and 2017 in two second-growth
-forests (CR and JE) by running the following code:
+dataset, we display below the coverage-based R/E curves for temporal
+beta diversity among the three years (2005, 2011, and 2017) in the two
+second-growth forests (CR and JE) by running the following code:
 
 ``` r
-## Coverage-based R/E curves for taxonomic gamma, alpha and beta diversity 
+
+## Coverage-based R/E curves with taxonomic gamma, alpha and beta diversity 
+
 ggiNEXTbeta3D(output_TDc_inci, type = 'B')
 ```
 
-<img src="README/README-unnamed-chunk-25-1.png" width="576" style="display: block; margin: auto;" />
+<img src="README/README-unnamed-chunk-21-1.png" width="576" style="display: block; margin: auto;" />
 
 The following commands return the size-based R/E sampling curves for
 gamma and alpha taxonomic diversity:
 
 ``` r
-## Size-based R/E curves for taxonomic gamma and alpha diversity
+
+## Size-based R/E curves with taxonomic gamma and alpha diversity (all assemblages as a whole)
+data(Second_growth_forests)
+
 output_TDs_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
                               datatype = 'incidence_raw', base = "size", nboot = 10)
 
 ggiNEXTbeta3D(output_TDs_inci)
 ```
 
-<img src="README/README-unnamed-chunk-26-1.png" width="576" style="display: block; margin: auto;" />
+<img src="README/README-unnamed-chunk-22-1.png" width="576" style="display: block; margin: auto;" />
 
-### EXAMPLE 4: Incidence data with user-specified sample sizes or coverage values
+### EXAMPLE 3: Incidence data for every pair of assemblages with user-specified sample sizes or coverage values
 
 As with abundance data, user can also specify sample sizes (i.e. number
-of sampling units) or coverage values to obtain the pertinent output.
-The code for examples is given below with two user-specified levels of
-sample coverage values (e.g., 90% and 95%), but the output is omitted.
+of sampling units) or coverage values to obtain the pertinent output for
+every pair of assemblages. The code for examples is given below with two
+user-specified levels of sample coverage values (e.g., 90% and 95%), but
+the output is omitted.
 
 ``` r
-## R/E Analysis with taxonomic diversity for incidence data
+
+## Coverage-based R/E Analysis for every pair of assemblages with taxonomic diversity for incidence data
 data(Second_growth_forests)
 
 output_TDc_inci_byuser = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
                                      datatype = 'incidence_raw', base = "coverage", 
-                                     nboot = 10, level = c(0.9, 0.95))
+                                     nboot = 10, level = c(0.9, 0.95), by_pair = TRUE)
 output_TDc_inci_byuser
 ```
 
-The following commands return the TD estimates with two user-specified
-levels of sample sizes (e.g., 100 and 200).
+The following commands return the TD estimates for every pair of
+assemblages with two user-specified levels of sample sizes (e.g., 100
+and 200).
 
 ``` r
-## Size-based R/E for taxonomic gamma and alpha diversity
+
+## Size-based R/E for every pair of assemblages with taxonomic gamma and alpha diversity
 data(Second_growth_forests)
 
 output_TDs_inci_byuser = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD', 
                                      datatype = 'incidence_raw', base = "size", 
-                                     nboot = 10, level = c(100, 200))
+                                     nboot = 10, level = c(100, 200), by_pair = TRUE)
 output_TDs_inci_byuser
 ```
 
 ## <span style="color:blue;">PHYLOGENETIC DIVERSITY (PD): RAREFACTION/EXTRAPOLATION VIA EXAMPLES</span>
 
-### EXAMPLE 5: Abundance data with default sample sizes or coverage values
+### EXAMPLE 4: Abundance data with default sample sizes or coverage values
 
 As with taxonomic diversity, `iNEXT.beta3D` computes coverage-based
 standardized phylogenetic gamma, alpha, beta diversity as well as four
@@ -1093,27 +1007,40 @@ provided.
 
 The required argument for performing PD analysis is `PDtree`. For
 example, the phylogenetic tree for all observed species (including
-species in both Marim and Rebio2 fragments) is stored in a data file
+species in both “Marim” and “Rebio2” fragments) is stored in a data file
 named `"Brazil_tree"`. Then we enter the argument
-`PDtree = Brazil_tree`. Two optional arguments are: `PDtype` and
-`PDreftime`. There are two options for `PDtype`: `"PD"` (effective total
-branch length) or `"meanPD"` (effective number of equally divergent
-lineages, meanPD = PD/tree depth). Default is `PDtype = "meanPD"`.
-`PDreftime` is a numerical value specifying a reference time for
-computing phylogenetic diversity. By default (`PDreftime = NULL`), the
-reference time is set to the tree depth, i.e., age of the root of the
-phylogenetic tree. Run the following code to perform PD analysis. The
-output data frame is similar to that based on abundance data and thus is
-omitted.
+`PDtree = Brazil_tree`. Three optional arguments are `PDtype`,
+`PDreftime`, and `PDcut_number`. There are three options for `PDtype`:
+`"PD"` (effective total branch length), `"meanPD"` (effective number of
+equally divergent lineages, meanPD = PD/tree depth), or `"AUC"` (an
+overall measure that integrates mean phylogenetic diversity over all
+time reference points from zero to the age of the root). Default is
+`PDtype = "AUC"`.
+
+For `PDtype = "PD"` and `PDtype = "meanPD"`, `PDreftime` specifies a
+fixed time reference point for phylogenetic diversity. If
+`PDreftime = NULL`, the age of the root of the phylogenetic tree spanned
+by the pooled observed species is used.
+
+For `PDtype = "AUC"`, mean phylogenetic diversity is integrated over all
+time reference points from zero to the age of the root. `PDcut_number`
+specifies the number of equally spaced time reference points used to
+numerically approximate the AUC.
+
+Default is `PDcut_number = 30`. A larger value can be used to obtain a
+more accurate AUC approximation. Run the following code to perform PD
+analysis. The output data frame is similar to that based on abundance
+data and thus is omitted.
 
 ``` r
-## R/E Analysis with phylogenetic diversity for abundance data
+
+## Coverage-based R/E Analysis with phylogenetic diversity for abundance data
 data(Brazil_rainforests)
 data(Brazil_tree)
 
 output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests, diversity = 'PD', 
-                              datatype = "abundance", base = 'coverage', nboot = 10, 
-                              PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'meanPD')
+                              datatype = 'abundance', base = "coverage", nboot = 10, 
+                              PDtree = Brazil_tree, PDtype = 'AUC', PDcut_number = 30)
 output_PDc_abun
 ```
 
@@ -1121,31 +1048,33 @@ Run the following code to display the R/E curves for phylogenetic gamma,
 alpha, and beta diversity:
 
 ``` r
+
 ## Coverage-based R/E sampling curves for phylogenetic gamma, alpha and beta diversity
 ggiNEXTbeta3D(output_PDc_abun, type = 'B')
 ```
 
-<img src="README/README-unnamed-chunk-31-1.png" width="576" style="display: block; margin: auto;" />
+<img src="README/README-unnamed-chunk-27-1.png" width="576" style="display: block; margin: auto;" />
 
 The following commands return the size-based R/E sampling curves for
 gamma and alpha phylogenetic diversity:
 
 ``` r
+
 ## Size-based R/E curves for phylogenetic gamma and alpha diversity
 data(Brazil_rainforests)
 data(Brazil_tree)
 
 output_PDs_abun = iNEXTbeta3D(data = Brazil_rainforests, diversity = 'PD', 
                               datatype = 'abundance', base = "size", nboot = 10, 
-                              PDtree = Brazil_tree, PDreftime = NULL, PDtype = 'meanPD')
+                              PDtree = Brazil_tree, PDtype = 'AUC', PDcut_number = 30)
 ggiNEXTbeta3D(output_PDs_abun)
 ```
 
-<img src="README/README-unnamed-chunk-32-1.png" width="576" style="display: block; margin: auto;" />
+<img src="README/README-unnamed-chunk-28-1.png" width="576" style="display: block; margin: auto;" />
 
 ## <span style="color:blue;">FUNCTIONAL DIVERSITY (FD): RAREFACTION/EXTRAPOLATION VIA EXAMPLES</span>
 
-### EXAMPLE 6: Abundance data with default sample sizes or coverage values
+### EXAMPLE 5: Abundance data with default sample sizes or coverage values
 
 As with taxonomic and phylogenetic diversity, `iNEXT.beta3D` computes
 coverage-based standardized functional gamma, alpha, beta diversity as
@@ -1161,30 +1090,32 @@ The required argument for performing FD analysis is `FDdistM`. For
 example, the distance matrix for all species (including species in both
 “Marim” and “Rebio2” fragments) is stored in a data file named
 `"Brazil_distM"`. Then we enter the argument `FDdistM = Brazil_distM`.
-Three optional arguments are (1) `FDtype`: `FDtype = "AUC"`means FD is
+Three optional arguments are (1) `FDtype`: `FDtype = "AUC"` means FD is
 computed from the area under the curve of a tau-profile by integrating
 all plausible threshold values between zero and one;
 `FDtype = "tau_value"` means FD is computed under a specific threshold
-value to be specified in the argument `FD_tau`. (2) `FD_tau`: a
-numerical value specifying the tau value (threshold level) that will be
-used to compute FD. If `FDtype = "tau_value"` and `FD_tau = NULL`, then
-the threshold level is set to be the mean distance between any two
+value to be specified in the argument `FDtau`. (2) `FDtau`: a numerical
+value specifying the tau value (threshold level) that will be used to
+compute FD. If `FDtype = "tau_value"` and `FDtau = NULL`, then the
+threshold level is set to be the mean distance between any two
 individuals randomly selected from the pooled data over all datasets
-(i.e., quadratic entropy). (3) `FDcut_number` is a numeric number to cut
-\[0, 1\] interval into equal-spaced sub-intervals to obtain the AUC
-value. Default is `FDcut_number = 30`. If more accurate integration is
-desired, then use a larger integer. Run the following code to perform FD
-analysis. The output data frame is similar to that based on abundance
-data and thus is omitted; see later graphical display of the output.
+(i.e., quadratic entropy). (3) `FDcut_number` is a positive integer
+specifying the number of equally spaced sub-intervals used to partition
+the \[0, 1\] interval for numerical approximation of the AUC. Default is
+`FDcut_number = 30`. If more accurate integration is desired, then use a
+larger integer. Run the following code to perform FD analysis. The
+output data frame is similar to that based on abundance data and thus is
+omitted; see later graphical display of the output.
 
 ``` r
-## R/E Analysis with functional diversity for abundance data - FDtype = 'AUC' (area under curve)
-## by considering all threshold values between zero and one
+
+## Coverage-based R/E Analysis with functional diversity for abundance data - FDtype = 'AUC' (area 
+## under curve) by considering all threshold values between zero and one
 data(Brazil_rainforests)
 data(Brazil_distM)
 
 output_FDc_abun = iNEXTbeta3D(data = Brazil_rainforests, diversity = 'FD', 
-                              datatype = "abundance", base = 'coverage', nboot = 10, 
+                              datatype = 'abundance', base = "coverage", nboot = 10, 
                               FDdistM = Brazil_distM, FDtype = 'AUC', FDcut_number = 30)
 output_FDc_abun
 ```
@@ -1193,16 +1124,18 @@ Run the following code to display the R/E curves for functional gamma,
 alpha, and beta diversity:
 
 ``` r
+
 ## Coverage-based R/E sampling curves for functional gamma, alpha and beta diversity
 ggiNEXTbeta3D(output_FDc_abun, type = 'B')
 ```
 
-<img src="README/README-unnamed-chunk-35-1.png" width="576" style="display: block; margin: auto;" />
+<img src="README/README-unnamed-chunk-31-1.png" width="576" style="display: block; margin: auto;" />
 
 The following commands return the size-based R/E sampling curves for
 gamma and alpha functional diversity:
 
 ``` r
+
 ## Size-based R/E curves for functional gamma and alpha diversity
 data(Brazil_rainforests)
 data(Brazil_distM)
@@ -1213,7 +1146,7 @@ output_FDs_abun = iNEXTbeta3D(data = Brazil_rainforests, diversity = 'FD',
 ggiNEXTbeta3D(output_FDs_abun)
 ```
 
-<img src="README/README-unnamed-chunk-36-1.png" width="576" style="display: block; margin: auto;" />
+<img src="README/README-unnamed-chunk-32-1.png" width="576" style="display: block; margin: auto;" />
 
 ## <span style="color:red;">DATA INFORMATION: FUNCTION DataInfobeta3D()</span>
 
@@ -1225,15 +1158,17 @@ default arguments is shown below:
 
 ``` r
 DataInfobeta3D(data, diversity = "TD", datatype = "abundance",
-               PDtree = NULL, PDreftime = NULL, FDdistM = NULL, FDtype = "AUC", FDtau = NULL)  
+               PDtree = NULL, PDreftime = NULL, PDtype = "meanPD",
+               FDdistM = NULL, FDtype = "AUC", FDtau = NULL, by_pair = FALSE)  
 ```
 
-All arguments in the above function are the same as those for the main
-function `iNEXTbeta3D`. Running the `DataInfobeta3D()` function returns
-basic data information including sample size, observed species richness,
-two sample coverage estimates (`SC(n)` and `SC(2n)`) as well as other
-relevant information in each of the three dimensions of diversity. We
-use `Brazil_rainforests` data to demo the function for each dimension.
+Arguments shared by `DataInfobeta3D()` and `iNEXTbeta3D()` have the same
+definitions as described above. Running the `DataInfobeta3D()` function
+returns basic data information including sample size, observed species
+richness, two sample coverage estimates (`SC(n)` and `SC(2n)`) as well
+as other relevant information in each of the three dimensions of
+diversity. We use `Brazil_rainforests` data to demonstrate the function
+for each dimension.
 
 ``` r
 ## Data information for taxonomic diversity
@@ -1255,6 +1190,9 @@ Output description:
 
 -   `Dataset` = the input datasets.
 
+-   `Pair` = combinations of assemblage pairs; this column is included
+    only when the analysis is performed for every pair of assemblages.
+
 -   `Assemblage` = Individual assemblages, `'Pooled assemblage'` (for
     gamma) or `'Joint assemblage'` (for alpha).
 
@@ -1272,26 +1210,37 @@ Output description:
     reference sample.
 
 ``` r
-## Data information for phylogenetic diversity
+
+## Data information for mean phylogenetic diversity
 data(Brazil_rainforests)
 data(Brazil_tree)
 DataInfobeta3D(data = Brazil_rainforests, diversity = 'PD', datatype = 'abundance', 
-               PDtree = Brazil_tree, PDreftime = NULL)
+               PDtype = 'meanPD', PDtree = Brazil_tree, PDreftime = NULL)
 ```
 
-      Dataset        Assemblage   n S.obs SC(n) SC(2n) PD.obs f1* f2*   g1   g2 Reftime
-    1   Marim              Edge 158    84 0.691  0.852   8805  49  26 3278 2188     400
-    2   Marim          Interior 144    80 0.704  0.899   8436  43  28 2974 1935     400
-    3   Marim Pooled assemblage 302   119 0.855  0.969  11842  44  39 3172 2995     400
-    4   Marim  Joint assemblage 302   164 0.696  0.876  17241  92  54 6252 4123     400
-    5  Rebio2              Edge 162    70 0.754  0.895   7874  40  23 3648 1717     400
-    6  Rebio2          Interior 168    74 0.763  0.877   8360  40  17 3365 1954     400
-    7  Rebio2 Pooled assemblage 330   118 0.819  0.901  11979  60  23 5063 1637     400
-    8  Rebio2  Joint assemblage 330   144 0.758  0.886  16234  80  40 7013 3671     400
+      Dataset        Assemblage   n S.obs SC(n) SC(2n) PD.obs f1* f2*   g1
+    1   Marim              Edge 158    84 0.691  0.852   8805  49  26 3278
+    2   Marim          Interior 144    80 0.704  0.899   8436  43  28 2974
+    3   Marim Pooled assemblage 302   119 0.855  0.969  11842  44  39 3172
+    4   Marim  Joint assemblage 302   164 0.696  0.876  17241  92  54 6252
+    5  Rebio2              Edge 162    70 0.754  0.895   7874  40  23 3648
+    6  Rebio2          Interior 168    74 0.763  0.877   8360  40  17 3365
+    7  Rebio2 Pooled assemblage 330   118 0.819  0.901  11979  60  23 5063
+    8  Rebio2  Joint assemblage 330   144 0.758  0.886  16234  80  40 7013
+        g2 Reftime
+    1 2188     400
+    2 1935     400
+    3 2995     400
+    4 4123     400
+    5 1717     400
+    6 1954     400
+    7 1637     400
+    8 3671     400
 
-Information description:
+For both `PDtype = "PD"` and `PDtype = "meanPD"`, the output information
+is described as follows:
 
--   `Dataset`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`:
+-   `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`:
     definitions are the same as in the TD output.
 
 -   `PD.obs` = the observed total branch length in the phylogenetic tree
@@ -1303,10 +1252,57 @@ Information description:
 -   `g1`,`g2` = the total branch length of those singletons/doubletons
     in the node/branch abundance set.
 
--   `Reftime` = reference time for phylogenetic diversity (the age of
-    the root of phylogenetic tree).
+-   `Reftime` = the fixed time reference point for phylogenetic
+    diversity. If `PDreftime = NULL`, the age of the root of the
+    phylogenetic tree spanned by the pooled observed species is used.
 
 ``` r
+
+## Data information for phylogenetic diversity when all time reference points are considered
+data(Brazil_rainforests)
+data(Brazil_tree)
+
+DataInfobeta3D(data = Brazil_rainforests, diversity = 'PD',
+               datatype = 'abundance', PDtype = 'AUC',
+               PDtree = Brazil_tree)
+               
+```
+
+      Dataset        Assemblage   n S.obs SC(n) SC(2n) Tree.depth.min
+    1   Marim              Edge 158    84 0.691  0.852              0
+    2   Marim          Interior 144    80 0.704  0.899              0
+    3   Marim Pooled assemblage 302   119 0.855  0.969              0
+    4   Marim  Joint assemblage 302   164 0.696  0.876              0
+    5  Rebio2              Edge 162    70 0.754  0.895              0
+    6  Rebio2          Interior 168    74 0.763  0.877              0
+    7  Rebio2 Pooled assemblage 330   118 0.819  0.901              0
+    8  Rebio2  Joint assemblage 330   144 0.758  0.886              0
+      Tree.depth.max
+    1            400
+    2            400
+    3            400
+    4            400
+    5            400
+    6            400
+    7            400
+    8            400
+
+For `PDtype = "AUC"` the output information is described as follows:
+
+-   `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`:
+    definitions are the same as in the TD output.
+
+-   `Tree.depth.min` = the minimum time reference point used for
+    calculating the integrated mean phylogenetic diversity; this value
+    is zero.
+
+-   `Tree.depth.max` = the maximum time reference point used for
+    calculating the integrated mean phylogenetic diversity; this value
+    is the age of the root of the phylogenetic tree spanned by the
+    pooled observed species.
+
+``` r
+
 ## Data information for functional diversity (under a specified threshold level, FDtype = 'tau_value')
 data(Brazil_rainforests)
 data(Brazil_distM)
@@ -1324,9 +1320,10 @@ DataInfobeta3D(data = Brazil_rainforests, diversity = 'FD', datatype = 'abundanc
     7  Rebio2 Pooled assemblage 330   118 0.819  0.901   0   0  0  0 0.343
     8  Rebio2  Joint assemblage 330   144 0.758  0.886   0   0  0  0 0.343
 
-Information description:
+For `FDtype = "tau_value"` the output information is described as
+follows:
 
--   `Dataset`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`:
+-   `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`:
     definitions are the same as in the TD output.
 
 -   `a1*`,`a2*` = the number of singletons (`a1*`) and of doubletons
@@ -1358,9 +1355,9 @@ DataInfobeta3D(data = Brazil_rainforests, diversity = 'FD', datatype = 'abundanc
     7  Rebio2 Pooled assemblage 330   118 0.819  0.901    0 0.355 0.770
     8  Rebio2  Joint assemblage 330   144 0.758  0.886    0 0.355 0.770
 
-Information description:
+For `FDtype = "AUC"` the output information is described as follows:
 
--   `Dataset`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`:
+-   `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)` and `SC(2n)`:
     definitions are the same as in TD and thus are omitted.
 
 -   `dmin` = the minimum distance among all non-diagonal elements in the
@@ -1372,28 +1369,46 @@ Information description:
 -   `dmax` = the maximum distance among all elements in the distance
     matrix.
 
-Below We use the demo dataset (`Second-growth forests`) to show the
+Below we use the demo dataset (`Second-growth forests`) to show the
 output of the function `DataInfobeta3D` for incidence data:
 
 ``` r
-## Data information for taxonomic diversity (incidence data)
+## Data information for taxonomic diversity with incidence data
 data(Second_growth_forests)
-DataInfobeta3D(data = Second_growth_forests, diversity = 'TD', datatype = 'incidence_raw')
+
+DataInfobeta3D(data = Second_growth_forests, diversity = 'TD', datatype = 'incidence_raw',
+               by_pair = FALSE)
 ```
 
-               Dataset        Assemblage   T    U S.obs SC(T) SC(2T)  Q1 Q2 Q3 Q4 Q5
-    1 CR 2005 vs. 2017         Year_2005 100  787   135 0.919  0.953  64 17 16  6  4
-    2 CR 2005 vs. 2017         Year_2017 100  768   134 0.917  0.956  64 20 11  8  3
-    3 CR 2005 vs. 2017 Pooled assemblage 100  923   151 0.925  0.959  70 21 14  6  6
-    4 CR 2005 vs. 2017  Joint assemblage 100 1555   269 0.918  0.954 128 37 27 14  7
-    5 JE 2005 vs. 2017         Year_2005 100  503    71 0.955  0.979  23  9  8  4  0
-    6 JE 2005 vs. 2017         Year_2017 100  659    91 0.953  0.979  31 12  8  3  5
-    7 JE 2005 vs. 2017 Pooled assemblage 100  864   107 0.963  0.987  32 17  9  4  8
-    8 JE 2005 vs. 2017  Joint assemblage 100 1162   162 0.954  0.979  54 21 16  7  5
+                 Dataset        Assemblage   T    U S.obs SC(T) SC(2T)  Q1
+    1  CR_2005_2011_2017         Year_2005 100  787   135 0.919  0.953  64
+    2  CR_2005_2011_2017         Year_2011 100  768   135 0.916  0.952  65
+    3  CR_2005_2011_2017         Year_2017 100  768   134 0.917  0.956  64
+    4  CR_2005_2011_2017 Pooled assemblage 100  929   152 0.926  0.961  69
+    5  CR_2005_2011_2017  Joint assemblage 100 2323   404 0.917  0.953 193
+    6  JE_2005_2011_2017         Year_2005 100  503    71 0.955  0.979  23
+    7  JE_2005_2011_2017         Year_2011 100  631    88 0.942  0.962  37
+    8  JE_2005_2011_2017         Year_2017 100  659    91 0.953  0.979  31
+    9  JE_2005_2011_2017 Pooled assemblage 100  908   108 0.964  0.985  33
+    10 JE_2005_2011_2017  Joint assemblage 100 1793   250 0.950  0.973  91
+       Q2 Q3 Q4 Q5
+    1  17 16  6  4
+    2  18 12  7  5
+    3  20 11  8  3
+    4  22 15  6  6
+    5  55 39 21 12
+    6   9  8  4  0
+    7   8  4  6  7
+    8  12  8  3  5
+    9  14  9  6  8
+    10 29 20 13 12
 
 Information description:
 
 -   `Dataset` = the input datasets.
+
+-   `Pair` = combinations of assemblage pairs; this column is included
+    only when the analysis is performed for every pair of assemblages.
 
 -   `Assemblage` = Individual assemblages, `'Pooled assemblage'` (for
     gamma) or `'Joint assemblage'` (for alpha).
@@ -1412,6 +1427,57 @@ Information description:
 
 -   `Q1`-`Q5` = the first five species incidence frequency counts in the
     reference sample.
+
+``` r
+## Data information for taxonomic diversity for every pair of assemblages (incidence data)
+data(Second_growth_forests)
+
+
+DataInfobeta3D(data = Second_growth_forests, diversity = 'TD', datatype = 'incidence_raw', 
+               by_pair = TRUE)
+```
+
+                 Dataset                    Pair        Assemblage   T    U
+    1  CR_2005_2011_2017                                 Year_2005 100  787
+    2  CR_2005_2011_2017                                 Year_2011 100  768
+    3  CR_2005_2011_2017                                 Year_2017 100  768
+    4  CR_2005_2011_2017 Year_2005 vs. Year_2011 Pooled assemblage 100  860
+    5  CR_2005_2011_2017 Year_2005 vs. Year_2011  Joint assemblage 100 1555
+    6  CR_2005_2011_2017 Year_2005 vs. Year_2017 Pooled assemblage 100  923
+    7  CR_2005_2011_2017 Year_2005 vs. Year_2017  Joint assemblage 100 1555
+    8  CR_2005_2011_2017 Year_2011 vs. Year_2017 Pooled assemblage 100  837
+    9  CR_2005_2011_2017 Year_2011 vs. Year_2017  Joint assemblage 100 1536
+    10 JE_2005_2011_2017                                 Year_2005 100  503
+    11 JE_2005_2011_2017                                 Year_2011 100  631
+    12 JE_2005_2011_2017                                 Year_2017 100  659
+    13 JE_2005_2011_2017 Year_2005 vs. Year_2011 Pooled assemblage 100  757
+    14 JE_2005_2011_2017 Year_2005 vs. Year_2011  Joint assemblage 100 1134
+    15 JE_2005_2011_2017 Year_2005 vs. Year_2017 Pooled assemblage 100  864
+    16 JE_2005_2011_2017 Year_2005 vs. Year_2017  Joint assemblage 100 1162
+    17 JE_2005_2011_2017 Year_2011 vs. Year_2017 Pooled assemblage 100  788
+    18 JE_2005_2011_2017 Year_2011 vs. Year_2017  Joint assemblage 100 1290
+       S.obs SC(T) SC(2T)  Q1 Q2 Q3 Q4
+    1    135 0.919  0.953  64 17 16  6
+    2    135 0.916  0.952  65 18 12  7
+    3    134 0.917  0.956  64 20 11  8
+    4    145 0.920  0.954  69 19 13  5
+    5    270 0.917  0.952 129 35 28 13
+    6    151 0.925  0.959  70 21 14  6
+    7    269 0.918  0.954 128 37 27 14
+    8    142 0.923  0.958  65 20 15  7
+    9    269 0.917  0.954 129 38 23 15
+    10    71 0.955  0.979  23  9  8  4
+    11    88 0.942  0.962  37  8  4  6
+    12    91 0.953  0.979  31 12  8  3
+    13    96 0.951  0.969  37  8  6  7
+    14   159 0.947  0.970  60 17 12 10
+    15   107 0.963  0.987  32 17  9  4
+    16   162 0.954  0.979  54 21 16  7
+    17   100 0.958  0.981  33 13  8  6
+    18   179 0.948  0.971  68 20 12  9
+
+Output description: definitions are the same as before and thus are
+omitted.
 
 ## License and feedback
 
