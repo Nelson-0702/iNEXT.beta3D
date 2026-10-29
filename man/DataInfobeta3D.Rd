@@ -25,7 +25,7 @@ DataInfobeta3D(
 
 \item{datatype}{Type of input data: individual-based abundance data (\code{datatype = "abundance"}) or sampling-unit-based incidence data (\code{datatype = "incidence_raw"}). For incidence raw data, each species-by-sampling-unit matrix contains only 0 (non-detection) or 1 (detection).}
 
-\item{PDtype}{Argument only for \code{diversity = "PD"}. Specifies the phylogenetic diversity measure: \code{PDtype = "meanPD"} for the effective number of equally divergent lineages at a specified reference time, or \code{PDtype = "AUC"} for an overall measure obtained by integrating and averaging mean phylogenetic diversity across reference times from zero to the root age. Default is \code{PDtype = "meanPD"}.}
+\item{PDtype}{Argument only for \code{diversity = "PD"}. Specifies the phylogenetic diversity measure: \code{PDtype = "meanPD"} for the effective number of equally divergent lineages at a specified reference time, or \code{PDtype = "AUC"} for an overall measure obtained by integrating and averaging mean phylogenetic diversity across reference times from zero to the root age of the phylogenetic tree. Default is \code{PDtype = "meanPD"}.}
 
 \item{PDtree}{Required when \code{diversity = "PD"}. A phylogenetic tree (an R \code{phylo} object) spanning all observed species across the input datasets. The tree can be imported from a file in Newick format.}
 

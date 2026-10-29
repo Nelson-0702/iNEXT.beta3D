@@ -30,7 +30,7 @@ In addition, we added an AUC-based phylogenetic diversity measure ("PDtype = AUC
 </font>-->
 
 
-The package `iNEXT.beta3D` (iNterpolation and EXTrapolation with beta diversity for three dimensions of biodiversity) is a sequel to `iNEXT`. The three dimensions (3D) of biodiversity include <font color=#FF6781>taxonomic diversity (TD)</font>, <font color=#FF6781>phylogenetic diversity (PD)</font> and <font color=#FF6781>functional diversity (FD)</font>. This document provides an introduction demonstrating how to run `iNEXT.beta3D`. An online version [iNEXT.beta3D Online](https://chao.shinyapps.io/iNEXT_beta3D/) is also available for users without an R background.
+The package `iNEXT.beta3D` (iNterpolation and EXTrapolation with beta diversity for three dimensions of biodiversity) is a sequel to `iNEXT`. The three dimensions (3D) of biodiversity include <font color=#FF6781>taxonomic diversity (TD)</font>, <font color=#FF6781>phylogenetic diversity (PD)</font> and <font color=#FF6781>functional diversity (FD)</font>. This document provides an introduction demonstrating how to run `iNEXT.beta3D`. An online version [iNEXT.beta3D Online](https://chao.shinyapps.io/iNEXTbeta3D/) is also available for users without an R background.
 
 A unified framework based on Hill numbers (for TD) and their generalizations, Hill-Chao numbers (for PD and FD), is adopted in the package. TD quantifies the effective number of species, meanPD (PD divided by reference time) quantifies the effective number of lineages, and FD quantifies the effective number of virtual functional groups (or functional "species"). Thus, TD, meanPD, and FD
 are all expressed in comparable units of species/lineage equivalents, allowing meaningful comparisons across the three dimensions of biodiversity; see Chao et al. (2021) for a review of the unified framework.
@@ -39,7 +39,7 @@ For each of the three dimensions, iNEXT.beta3D focuses on the multiplicative dec
 
 iNEXT.beta3D provides standardized 3D estimates at a common sample size (for alpha and gamma diversity only, because sample-size-based beta diversity is not generally valid) or at a common sample coverage (for alpha, beta and gamma diversity). iNEXT.beta3D also provides standardized estimates for four classes of coverage-based dissimilarity measures.
 
-Based on rarefaction and extrapolation (R/E) theory for Hill-numbers-based TD of orders q = 0, 1 and 2, Chao et al. (2023b) developed the corresponding R/E theory for taxonomic beta diversity, with applications to real-world spatial, temporal and spatio-temporal data. An application to Gentry’s global forest data together with a concise description of the theory, is provided in Chao et al. (2023a). The extension to phylogenetic and functional beta diversity follows a generally parallel framework. `iNEXT.beta3D` features two types of R/E sampling curves:
+Based on rarefaction and extrapolation (R/E) theory for Hill-numbers-based TD of orders q = 0, 1 and 2, Chao et al. (2023b) developed the corresponding R/E theory for taxonomic beta diversity, with applications to real-world spatial, temporal and spatio-temporal data. An application to Gentry’s global forest data together with a concise description of the theory is provided in Chao et al. (2023a). The extension to phylogenetic and functional beta diversity follows a generally parallel framework. `iNEXT.beta3D` features two types of R/E sampling curves:
 
 1. Sample-size-based (or size-based) R/E sampling curves: These curves plot standardized 3D <font color=#FF6781>gamma</font> and <font color=#FF6781>alpha</font> diversity as functions of sample size. Note that the size-based beta diversity is not generally a statistically valid measure (Chao et al. 2023b); therefore, the corresponding beta diversity sampling curve is not provided.
 
@@ -231,7 +231,7 @@ For <code>datatype = "incidence_raw"</code>, data for a single dataset should be
 
 <tr class="even">
 <td align="center"><code>diversity</code></td>
-<td align="left">Selection of the diversity type: <code>diversity = "TD"</code> for Taxonomic diversity, <code>diversity = "PD"</code> for Phylogenetic diversity, and <code>diversity = "FD"</code> for Functional diversity.</td></tr>
+<td align="left">Selection of the diversity type: <code>diversity = "TD"</code> for taxonomic diversity, <code>diversity = "PD"</code> for phylogenetic diversity, and <code>diversity = "FD"</code> for functional diversity.</td></tr>
 
 
 <tr class="odd">
@@ -282,8 +282,9 @@ A non-negative integer specifying the number of bootstrap replications used to a
 <tr class="even">
 <td align="center"><code>PDreftime</code></td>
 <td align="left">
-(argument only for <code>diversity = "PD"</code> and <code>PDtype = "meanPD"</code>), a numerical value specifying a fixed time reference point for phylogenetic diversity. Default is <code>PDreftime = NULL</code>, in which case the age of the root of the phylogenetic tree spanned by the pooled observed species is used.
-</td></tr>
+(argument only for <code>diversity = "PD"</code> and <code>PDtype = "meanPD"</code>), a numerical value specifying a fixed reference time for phylogenetic diversity. Default is <code>PDreftime = NULL</code>, in which case the root age of the phylogenetic tree spanning the pooled observed species is used.
+</td>
+
 
 <tr class="odd">
 <td align="center"><code>PDtype</code></td>
@@ -391,14 +392,6 @@ ggiNEXTbeta3D(output, type = "B")
 </table>
 
 
-<code>type = "B"</code> generates R/E sampling curves for gamma, alpha, and beta diversity, whereas <code>type = "D"</code> generates R/E sampling curves for four dissimilarity indices. The <code>type</code> argument is not required when plotting size-based R/E sampling curves for gamma and alpha diversity.
-
-
-
- \code{type = "B"} generates R/E sampling curves for gamma, alpha, and beta diversity, whereas \code{type = "D"} generates R/E sampling
- curves for four dissimilarity indices. The \code{type} argument is not required when plotting size-based R/E sampling curves for gamma and alpha diversity.
-
-
 The `ggiNEXTbeta3D()` function is a wrapper around the `ggplot2` package that creates rarefaction and extrapolation (R/E) sampling curves with a single line of code. When `by_pair = FALSE`, it returns a single `"ggplot"` object that can be further customized using `ggplot2` functions. When `by_pair = TRUE`, it returns a named list of `"ggplot"` objects, with one plot for each dataset.
 
 
@@ -448,7 +441,7 @@ tmp
 Run the following code to plot the two types of rarefaction and extrapolation (R/E) sampling curves:
 
   
-```{r, fig.align='center', fig.height=6, fig.width=6}
+```{r, fig.align='center', fig.height=8, fig.width=8}
 
 ## Coverage-based R/E curves for taxonomic gamma, alpha and beta diversity 
 ggiNEXTbeta3D(output_TDc_abun, type = 'B')
@@ -456,7 +449,7 @@ ggiNEXTbeta3D(output_TDc_abun, type = 'B')
 ```
 
 
-```{r, fig.align='center', fig.height=8, fig.width=6}
+```{r, fig.align='center', fig.height=12, fig.width=8}
 
 ## Coverage-based R/E curves for four taxonomic dissimilarity indices
 ggiNEXTbeta3D(output_TDc_abun, type = 'D')
@@ -466,7 +459,7 @@ ggiNEXTbeta3D(output_TDc_abun, type = 'D')
 
 The following code generates size-based rarefaction and extrapolation (R/E) sampling curves for taxonomic gamma and alpha diversity:
   
-```{r, fig.align='center', fig.height=5, fig.width=6}
+```{r, fig.align='center', fig.height=6, fig.width=8}
 
 ## Size-based R/E curves with taxonomic gamma and alpha diversity
 data(Brazil_rainforests)
@@ -522,7 +515,7 @@ output_TDc_inci = iNEXTbeta3D(data = Second_growth_forests, diversity = 'TD',
 The following code generates coverage-based R/E sampling curves for taxonomic gamma, alpha, and beta diversity among the three years (2005, 2011, and 2017) in the two second-growth forests (CR and JE):
   
   
-```{r, fig.align='center', fig.height=6, fig.width=6}
+```{r, fig.align='center', fig.height=8, fig.width=8}
 
 ## Coverage-based R/E curves with taxonomic gamma, alpha and beta diversity 
 
@@ -533,7 +526,7 @@ ggiNEXTbeta3D(output_TDc_inci, type = 'B')
 
 The following code generates size-based R/E sampling curves for taxonomic gamma and alpha diversity:
 
-```{r, fig.align='center', fig.height=5, fig.width=6}
+```{r, fig.align='center', fig.height=6, fig.width=8}
 
 ## Size-based R/E curves with taxonomic gamma and alpha diversity (all assemblages as a whole)
 data(Second_growth_forests)
@@ -579,7 +572,7 @@ For example, the following code displays the coverage-based R/E sampling curves 
 
 
 
-```{r}
+```{r, fig.align='center', fig.height=9, fig.width=8}
 
 ## Coverage-based R/E curves for every pair of assemblages in CR
 plot_TDc_inci_pair = ggiNEXTbeta3D(output_TDc_inci_pair, type = 'B')
@@ -591,7 +584,7 @@ plot_TDc_inci_pair[["CR_2005_2011_2017"]]
 Similarly, the corresponding coverage-based R/E sampling curves for every pair of years in the JE forest can be displayed using the following code:
 
 
-```{r}
+```{r, fig.align='center', fig.height=9, fig.width=8}
 
 ## Coverage-based R/E curves for every pair of assemblages in JE
 plot_TDc_inci_pair[["JE_2005_2011_2017"]]
@@ -601,7 +594,7 @@ plot_TDc_inci_pair[["JE_2005_2011_2017"]]
 The following code generates size-based R/E sampling curves for taxonomic gamma and alpha diversity for every pair of assemblages in the CR forest:
 
 
-```{r}
+```{r, fig.align='center', fig.height=6, fig.width=8}
 
 ## Size-based R/E Analysis for every pair of assemblages with taxonomic diversity
 data(Second_growth_forests)
@@ -666,7 +659,7 @@ output_PDc_abun = iNEXTbeta3D(data = Brazil_rainforests, diversity = 'PD',
 The following code generates coverage-based R/E sampling curves for phylogenetic AUC-based gamma, alpha, and beta diversity:
 
 
-```{r, fig.align='center', fig.height=6, fig.width=6}
+```{r, fig.align='center', fig.height=8, fig.width=8}
 
 ## Coverage-based R/E sampling curves for phylogenetic gamma, alpha and beta diversity
 ggiNEXTbeta3D(output_PDc_abun, type = 'B')
@@ -676,7 +669,7 @@ ggiNEXTbeta3D(output_PDc_abun, type = 'B')
 The following code generates size-based R/E sampling curves for phylogenetic AUC-based gamma and alpha diversity:
 
   
-```{r, fig.align='center', fig.height=5, fig.width=6}
+```{r, fig.align='center', fig.height=6, fig.width=8}
 
 ## Size-based R/E curves for phylogenetic gamma and alpha diversity
 data(Brazil_rainforests)
@@ -712,7 +705,7 @@ Run the following code to perform coverage-based FD analysis using the default A
 ```{r eval=FALSE}
 
 ## Coverage-based R/E Analysis with functional diversity for abundance data - FDtype = 'AUC' (area 
-## under curve) by considering all threshold values between zero and one
+## under the curve) by considering all threshold values between zero and one
 data(Brazil_rainforests)
 data(Brazil_distM)
 
@@ -737,7 +730,7 @@ output_FDc_abun = iNEXTbeta3D(data = Brazil_rainforests, diversity = 'FD',
 The following code generates coverage-based R/E sampling curves for functional AUC-based gamma, alpha, and beta diversity:
 
 
-```{r, fig.align='center', fig.height=6, fig.width=6}
+```{r, fig.align='center', fig.height=8, fig.width=8}
 
 ## Coverage-based R/E sampling curves for functional gamma, alpha and beta diversity
 ggiNEXTbeta3D(output_FDc_abun, type = 'B')
@@ -747,7 +740,7 @@ ggiNEXTbeta3D(output_FDc_abun, type = 'B')
 The following code generates size-based R/E sampling curves for functional AUC-based gamma and alpha diversity:
 
   
-```{r, fig.align='center', fig.height=5, fig.width=6}
+```{r, fig.align='center', fig.height=6, fig.width=8}
 
 ## Size-based R/E curves for functional gamma and alpha diversity
 data(Brazil_rainforests)
@@ -795,15 +788,15 @@ Output description:
 
 - `Pair` = the pair of assemblages being compared; this column is included only when `by_pair = TRUE`.
 
-- `Assemblage` = individual assemblages, `"Pooled assemblage"` (for gamma diversity), or `"Joint assemblage"` (for alpha diversity).
+- `Assemblage` = individual assemblages, `"Pooled assemblage"` (for gamma), or `"Joint assemblage"` (for alpha).
 
 - `n` = number of observed individuals in the reference sample (sample size).
 
 - `S.obs` = number of observed species in the reference sample.
 
-- `SC(n)` = estimated sample coverage of the reference sample.
+- `SC(n)` = sample coverage estimate of the reference sample.
 
-- `SC(2n)` = estimated sample coverage of twice the reference sample size.
+- `SC(2n)` = sample coverage estimate of twice the reference sample size.
 
 - `f1`–`f5` = the first five species abundance frequency counts in the reference sample.
 
@@ -834,7 +827,7 @@ Information description:
 
 - `Pair` = the pair of assemblages being compared; this column is included only when `by_pair = TRUE`.
 
-- `Assemblage` = individual assemblages, `"Pooled assemblage"` (for gamma diversity), or `"Joint assemblage"` (for alpha diversity).
+- `Assemblage` = individual assemblages, `"Pooled assemblage"` (for gamma), or `"Joint assemblage"` (for alpha).
 
 - `T` = number of sampling units in the reference sample (sample size for incidence data).
 
@@ -842,9 +835,9 @@ Information description:
 
 - `S.obs` = number of observed species in the reference sample.
 
-- `SC(T)` = estimated sample coverage of the reference sample.
+- `SC(T)` = sample coverage estimate of the reference sample.
 
-- `SC(2T)` = estimated sample coverage of twice the reference sample size.
+- `SC(2T)` = sample coverage estimate of twice the reference sample size.
 
 - `Q1`–`Q5` = the first five species incidence frequency counts in the reference sample.
 
@@ -906,9 +899,9 @@ For `PDtype = "meanPD"`, the output information is described as follows:
 
 - `meanPD.obs` = the observed mean phylogenetic diversity, calculated as `PD.obs / Reftime`.
 
-- `f1*`, `f2*` = the numbers of singletons and doubletons, respectively, in the node/branch abundance set.
+- `f1*`, `f2*` = the number of singletons and doubletons in the node/branch abundance set. 
 
-- `g1`, `g2` = the total branch lengths of those singletons and doubletons, respectively, in the node/branch abundance set.
+- `g1`, `g2` = the total branch length of those singletons/doubletons in the node/branch abundance set.
 
 - `Reftime` = the user-specified reference time used for phylogenetic diversity calculations. If `PDreftime = NULL` (default), the root age of the phylogenetic tree spanning the pooled observed species is used.
 
@@ -981,9 +974,9 @@ For `FDtype = "tau_value"`, the output information is described as follows:
 
 - `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)`, and `SC(2n)` = definitions are the same as those in the TD output.
 
-- `a1*`, `a2*` = the numbers of singletons and doubletons, respectively, in the functional abundances at the specified threshold of functional distinctiveness (`Tau`).
+- `a1*`, `a2*` =  numbers of singletons and doubletons in the functional abundances at the specified tau level, respectively..
 
-- `h1`, `h2` = the total contributions of functional singletons and doubletons, respectively, at the specified threshold.
+- `h1`, `h2` =  total contributions of the functional singletons and doubletons at the specified tau level, respectively.
 
 - `Tau` = the user-specified threshold level for functional distinctiveness. If `FDtau = NULL` (default), the threshold is set to `dmean`, the mean distance between two individuals randomly selected from the pooled data across all datasets.
 
@@ -1035,11 +1028,11 @@ For `FDtype = "AUC"`, the output information is described as follows:
 
 - `Dataset`, `Pair`, `Assemblage`, `n`, `S.obs`, `SC(n)`, and `SC(2n)` = definitions are the same as those in the TD output.
 
-- `dmin` = the minimum distance among all non-diagonal elements in the species pairwise distance matrix.
+- `dmin` = the minimum distance among all non-diagonal elements in the distance matrix.
 
-- `dmean` = the mean functional distance between two individuals randomly selected from the assemblage under consideration.
+- `dmean` = the mean distance between any two individuals randomly selected from the pooled data.
 
-- `dmax` = the maximum pairwise distance among species in the distance matrix.
+- `dmax` = the maximum distance among all elements in the distance matrix.
 
 
 
@@ -1058,7 +1051,4 @@ The `iNEXT.beta3D` package is licensed under the GPLv3. To help refine `iNEXT.be
 - Chao, A., Henderson, P. A., Chiu, C.-H., Moyes, F., Hu, K.-H., Dornelas, M. and Magurran, A. E. (2021). Measuring temporal change in alpha diversity: a framework integrating taxonomic, phylogenetic and functional diversity and the iNEXT.3D standardization. Methods in Ecology and Evolution, 12, 1926-1940.
 
 - Chao, A., Thorn, S., Chiu, C.-H., Moyes, F., Hu, K.-H., Chazdon, R. L., Wu, J., Magnago, L. F. S., Dornelas, M., Zelený, D., Colwell, R. K., and Magurran, A. E. (2023b). Rarefaction and extrapolation with beta diversity under a framework of Hill numbers: the iNEXT.beta3D standardization. <i>Ecological Monographs</i> e1588. (https://doi.org/10.1002/ecm.1588)
-
-
-
 

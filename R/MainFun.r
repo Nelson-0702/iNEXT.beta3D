@@ -3,12 +3,12 @@
 #' \code{iNEXTbeta3D()} computes standardized 3D gamma and alpha diversity estimates at common sample sizes, or gamma, alpha, and beta diversity, as well as four dissimilarity indices, at common sample coverage levels.
 #' Estimates can be obtained at default or user-specified sample sizes or coverage levels. See Chao et al. (2023b) for the theory.
 #'
-#' @param data (a) For \code{datatype = "abundance"}, data for a single dataset can be provided as a species-by-assemblage abundance matrix/data.frame, with species in rows and assemblages in columns. Data for multiple datasets should be provided as a list of such matrices/data.frames, with each element representing one dataset.\cr
-#' (b) For \code{datatype = "incidence_raw"}, data for a single dataset should be provided as a list of species-by-sampling-unit incidence matrices/data.frames, with each element representing one assemblage. Data for multiple datasets should be provided as a list of such lists, with each outer-list element representing one dataset.
+#' @param data For \code{datatype = "abundance"}, data for a single dataset can be provided as a species-by-assemblage abundance matrix/data.frame, with species in rows and assemblages in columns. Data for multiple datasets should be provided as a list of such matrices/data.frames, with each element representing one dataset.\cr
+#' For \code{datatype = "incidence_raw"}, data for a single dataset should be provided as a list of species-by-sampling-unit incidence matrices/data.frames, with each element representing one assemblage. Data for multiple datasets should be provided as a list of such lists, with each outer-list element representing one dataset.
 #'
 #' @param diversity Selection of the diversity type: \code{diversity = "TD"} for taxonomic diversity, \code{diversity = "PD"} for phylogenetic diversity, and \code{diversity = "FD"} for functional diversity.
 #'
-#' @param q A numeric vector specifying the diversity orders. Default is \code{c(0, 1, 2)}.
+#' @param q A numerical vector specifying the diversity orders. Default is \code{c(0, 1, 2)}.
 #'
 #' @param datatype Type of input data: individual-based abundance data (\code{datatype = "abundance"}) or sampling-unit-based incidence data (\code{datatype = "incidence_raw"}). For incidence raw data, each species-by-sampling-unit matrix contains only 0 (non-detection) or 1 (detection).
 #'
@@ -3843,7 +3843,6 @@ iNEXTbeta3D = function(data, diversity = 'TD', q = c(0, 1, 2), datatype = 'abund
 #'
 #' @return When the input was generated with \code{by_pair = FALSE}, the function returns a single \code{ggplot} object that can be customized using \code{ggplot2}. 
 #' When the input was generated with \code{by_pair = TRUE}, the function returns a named list of \code{ggplot} objects, with one plot for each dataset and different pairs of assemblages distinguished by color.
-#' For \code{base = "coverage"}, the plots display gamma, alpha, and beta diversity (\code{type = "B"}) or four dissimilarity indices (\code{type = "D"}). For \code{base = "size"}, the plots display gamma and alpha diversity.
 #'
 #' @examples
 #' \donttest{
@@ -4694,7 +4693,7 @@ ggplotColors <- function(g){
 #' @param datatype Type of input data: individual-based abundance data (\code{datatype = "abundance"}) or sampling-unit-based incidence data (\code{datatype = "incidence_raw"}). For incidence raw data, each species-by-sampling-unit matrix contains only 0 (non-detection) or 1 (detection).
 #' @param PDtree Required when \code{diversity = "PD"}. A phylogenetic tree (an R \code{phylo} object) spanning all observed species across the input datasets. The tree can be imported from a file in Newick format.
 #' @param PDreftime Argument only for \code{diversity = "PD"} and \code{PDtype = "meanPD"}. A numeric value specifying a fixed reference time for phylogenetic diversity. If \code{PDreftime = NULL} (default), the root age of the phylogenetic tree spanning the pooled observed species is used.
-#' @param PDtype Argument only for \code{diversity = "PD"}. Specifies the phylogenetic diversity measure: \code{PDtype = "meanPD"} for the effective number of equally divergent lineages at a specified reference time, or \code{PDtype = "AUC"} for an overall measure obtained by integrating and averaging mean phylogenetic diversity across reference times from zero to the root age. Default is \code{PDtype = "meanPD"}.
+#' @param PDtype Argument only for \code{diversity = "PD"}. Specifies the phylogenetic diversity measure: \code{PDtype = "meanPD"} for the effective number of equally divergent lineages at a specified reference time, or \code{PDtype = "AUC"} for an overall measure obtained by integrating and averaging mean phylogenetic diversity across reference times from zero to the root age of the phylogenetic tree. Default is \code{PDtype = "meanPD"}.
 #' @param FDdistM Required when \code{diversity = "FD"}. A species pairwise distance matrix covering all species observed across the input datasets.
 #' @param FDtype Argument only for \code{diversity = "FD"}. Specifies the functional diversity measure: \code{FDtype = "tau_value"} for FD at a specified threshold of functional distinctiveness, or \code{FDtype = "AUC"} for an overall FD measure obtained by integrating the tau-profile over threshold values from 0 to 1. Default is \code{FDtype = "AUC"}.
 #' @param FDtau Argument only for \code{diversity = "FD"} and \code{FDtype = "tau_value"}. A numeric value between 0 and 1 specifying the threshold of functional distinctiveness used to compute FD. If \code{FDtau = NULL} (default), the threshold is set to the mean pairwise functional distance between two individuals randomly selected from the pooled data across all datasets (i.e., Rao's quadratic entropy).

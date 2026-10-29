@@ -15,8 +15,7 @@
 
   A unified framework based on Hill numbers (for TD) and their generalizations, Hill-Chao
   numbers (for PD and FD), is adopted in this package. TD quantifies the effective number of
-  species, PD quantifies the effective total branch length or total evolutionary history,
-  meanPD (PD divided by reference time) quantifies the effective number of lineages,
+  species, meanPD (PD divided by reference time) quantifies the effective number of lineages,
   and FD quantifies the effective number of virtual functional groups (or functional
   "species"). Thus, TD, meanPD, and FD are all expressed in comparable units of
   species/lineage equivalents, allowing meaningful comparisons across the three
