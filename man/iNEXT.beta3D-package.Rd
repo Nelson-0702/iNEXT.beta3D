@@ -11,7 +11,7 @@
   This package \code{iNEXT.beta3D} (iNterpolation and EXTrapolation with beta diversity for three dimensions of biodiversity)
   is a sequel to \code{iNEXT}. The three dimensions (3D) of biodiversity include taxonomic diversity (TD),
   phylogenetic diversity (PD), and functional diversity (FD). An online version, "iNEXT.beta3D Online"
-  (https://chao.shinyapps.io/iNEXT_beta3D/), is also available for users without an R background.\cr
+  (https://chao.shinyapps.io/iNEXTbeta3D/), is also available for users without an R background.\cr
 
   A unified framework based on Hill numbers (for TD) and their generalizations, Hill-Chao
   numbers (for PD and FD), is adopted in this package. TD quantifies the effective number of

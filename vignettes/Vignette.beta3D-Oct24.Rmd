@@ -761,7 +761,7 @@ The function `DataInfobeta3D()` provides basic information about (1) the referen
 
 ```{r eval=FALSE}
 DataInfobeta3D(data, diversity = "TD", datatype = "abundance",
-               PDtree = NULL, PDreftime = NULL, PDtype = "meanPD",
+               PDtree = NULL, PDreftime = NULL, PDtype = "AUC",
                FDdistM = NULL, FDtype = "AUC", FDtau = NULL, by_pair = FALSE)  
 ```
 
